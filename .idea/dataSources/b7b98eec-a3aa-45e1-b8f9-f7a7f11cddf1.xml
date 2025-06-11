@@ -1,0 +1,1346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="@localhost">
+  <database-model serializer="dbm" dbms="ORACLE" family-id="ORACLE" format-version="4.53">
+    <root id="1"/>
+    <schema id="2" parent="1" name="SYSTEM">
+      <Current>1</Current>
+      <ObjectId>9</ObjectId>
+    </schema>
+    <schema id="3" parent="1" name="PUBLIC">
+      <ObjectId>1</ObjectId>
+    </schema>
+    <schema id="4" parent="1" name="SYS">
+      <ObjectId>0</ObjectId>
+    </schema>
+    <schema id="5" parent="1" name="AUDSYS">
+      <ObjectId>8</ObjectId>
+    </schema>
+    <schema id="6" parent="1" name="OUTLN">
+      <ObjectId>13</ObjectId>
+    </schema>
+    <schema id="7" parent="1" name="GSMADMIN_INTERNAL">
+      <ObjectId>24</ObjectId>
+    </schema>
+    <schema id="8" parent="1" name="GSMUSER">
+      <ObjectId>25</ObjectId>
+    </schema>
+    <schema id="9" parent="1" name="GSMROOTUSER">
+      <ObjectId>26</ObjectId>
+    </schema>
+    <schema id="10" parent="1" name="DIP">
+      <ObjectId>27</ObjectId>
+    </schema>
+    <schema id="11" parent="1" name="REMOTE_SCHEDULER_AGENT">
+      <ObjectId>38</ObjectId>
+    </schema>
+    <schema id="12" parent="1" name="DBSFWUSER">
+      <ObjectId>39</ObjectId>
+    </schema>
+    <schema id="13" parent="1" name="ORACLE_OCM">
+      <ObjectId>43</ObjectId>
+    </schema>
+    <schema id="14" parent="1" name="SYS$UMF">
+      <ObjectId>52</ObjectId>
+    </schema>
+    <schema id="15" parent="1" name="DGPDB_INT">
+      <ObjectId>56</ObjectId>
+    </schema>
+    <schema id="16" parent="1" name="DBSNMP">
+      <ObjectId>63</ObjectId>
+    </schema>
+    <schema id="17" parent="1" name="APPQOSSYS">
+      <ObjectId>67</ObjectId>
+    </schema>
+    <schema id="18" parent="1" name="GSMCATUSER">
+      <ObjectId>68</ObjectId>
+    </schema>
+    <schema id="19" parent="1" name="GGSYS">
+      <ObjectId>69</ObjectId>
+    </schema>
+    <schema id="20" parent="1" name="XDB">
+      <ObjectId>71</ObjectId>
+    </schema>
+    <schema id="21" parent="1" name="ANONYMOUS">
+      <ObjectId>72</ObjectId>
+    </schema>
+    <schema id="22" parent="1" name="WMSYS">
+      <ObjectId>81</ObjectId>
+    </schema>
+    <schema id="23" parent="1" name="OJVMSYS">
+      <ObjectId>90</ObjectId>
+    </schema>
+    <schema id="24" parent="1" name="CTXSYS">
+      <ObjectId>92</ObjectId>
+    </schema>
+    <schema id="25" parent="1" name="ORDSYS">
+      <ObjectId>94</ObjectId>
+    </schema>
+    <schema id="26" parent="1" name="ORDDATA">
+      <ObjectId>95</ObjectId>
+    </schema>
+    <schema id="27" parent="1" name="ORDPLUGINS">
+      <ObjectId>96</ObjectId>
+    </schema>
+    <schema id="28" parent="1" name="SI_INFORMTN_SCHEMA">
+      <ObjectId>97</ObjectId>
+    </schema>
+    <schema id="29" parent="1" name="OLAPSYS">
+      <ObjectId>100</ObjectId>
+    </schema>
+    <schema id="30" parent="1" name="MDSYS">
+      <ObjectId>103</ObjectId>
+    </schema>
+    <schema id="31" parent="1" name="MDDATA">
+      <ObjectId>104</ObjectId>
+    </schema>
+    <schema id="32" parent="1" name="LBACSYS">
+      <ObjectId>106</ObjectId>
+    </schema>
+    <schema id="33" parent="1" name="DVF">
+      <ObjectId>108</ObjectId>
+    </schema>
+    <schema id="34" parent="1" name="C##ESBUSER">
+      <CreatedTimestamp>2024-06-06.14:56:01</CreatedTimestamp>
+      <LastIntrospectionL1Timestamp>2024-07-19.16:24:49</LastIntrospectionL1Timestamp>
+      <LastIntrospectionL2Timestamp>2024-07-19.16:24:49</LastIntrospectionL2Timestamp>
+      <LastIntrospectionL3Timestamp>2024-07-19.16:24:49</LastIntrospectionL3Timestamp>
+      <LastIntrospectionVersion>200820</LastIntrospectionVersion>
+      <ModifiedTimestamp>2024-07-12.18:58:52</ModifiedTimestamp>
+      <ObjectId>109</ObjectId>
+    </schema>
+    <schema id="35" parent="1" name="C##FEX_OCT">
+      <ObjectId>110</ObjectId>
+    </schema>
+    <schema id="36" parent="1" name="C##ESUSERS">
+      <ObjectId>111</ObjectId>
+    </schema>
+    <schema id="37" parent="1" name="DVSYS">
+      <ObjectId>1279990</ObjectId>
+    </schema>
+    <schema id="38" parent="1" name="SYSBACKUP">
+      <ObjectId>2147483617</ObjectId>
+    </schema>
+    <schema id="39" parent="1" name="SYSDG">
+      <ObjectId>2147483618</ObjectId>
+    </schema>
+    <schema id="40" parent="1" name="SYSKM">
+      <ObjectId>2147483619</ObjectId>
+    </schema>
+    <schema id="41" parent="1" name="SYSRAC">
+      <ObjectId>2147483620</ObjectId>
+    </schema>
+    <schema id="42" parent="1" name="XS$NULL">
+      <ObjectId>2147483638</ObjectId>
+    </schema>
+    <tablespace id="43" parent="1" name="SYSTEM">
+      <BlockSize>8192</BlockSize>
+      <ContentCategory>P</ContentCategory>
+      <LocalExtentManagement>1</LocalExtentManagement>
+      <Logging>2</Logging>
+      <Status>E</Status>
+    </tablespace>
+    <tablespace id="44" parent="1" name="SYSAUX">
+      <AutoSegmentManagement>1</AutoSegmentManagement>
+      <BlockSize>8192</BlockSize>
+      <ContentCategory>P</ContentCategory>
+      <LocalExtentManagement>1</LocalExtentManagement>
+      <Logging>2</Logging>
+      <Status>E</Status>
+    </tablespace>
+    <tablespace id="45" parent="1" name="UNDOTBS1">
+      <BlockSize>8192</BlockSize>
+      <ContentCategory>U</ContentCategory>
+      <LocalExtentManagement>1</LocalExtentManagement>
+      <Logging>1</Logging>
+      <Status>E</Status>
+    </tablespace>
+    <tablespace id="46" parent="1" name="TEMP">
+      <BlockSize>8192</BlockSize>
+      <ContentCategory>T</ContentCategory>
+      <LocalExtentManagement>1</LocalExtentManagement>
+      <Logging>0</Logging>
+      <Status>E</Status>
+    </tablespace>
+    <tablespace id="47" parent="1" name="USERS">
+      <AutoSegmentManagement>1</AutoSegmentManagement>
+      <BlockSize>8192</BlockSize>
+      <ContentCategory>P</ContentCategory>
+      <LocalExtentManagement>1</LocalExtentManagement>
+      <Logging>1</Logging>
+      <Status>E</Status>
+    </tablespace>
+    <user id="48" parent="1" name="SYSTEM">
+      <ObjectId>9</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="49" parent="1" name="SYS">
+      <Locked>1</Locked>
+      <ObjectId>0</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="50" parent="1" name="AUDSYS">
+      <Locked>1</Locked>
+      <ObjectId>8</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="51" parent="1" name="OUTLN">
+      <Locked>1</Locked>
+      <ObjectId>13</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="52" parent="1" name="GSMADMIN_INTERNAL">
+      <Locked>1</Locked>
+      <ObjectId>24</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="53" parent="1" name="GSMUSER">
+      <Locked>1</Locked>
+      <ObjectId>25</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="54" parent="1" name="GSMROOTUSER">
+      <Locked>1</Locked>
+      <ObjectId>26</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="55" parent="1" name="DIP">
+      <Locked>1</Locked>
+      <ObjectId>27</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="56" parent="1" name="REMOTE_SCHEDULER_AGENT">
+      <Locked>1</Locked>
+      <ObjectId>38</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="57" parent="1" name="DBSFWUSER">
+      <Locked>1</Locked>
+      <ObjectId>39</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="58" parent="1" name="ORACLE_OCM">
+      <Locked>1</Locked>
+      <ObjectId>43</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="59" parent="1" name="SYS$UMF">
+      <Locked>1</Locked>
+      <ObjectId>52</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="60" parent="1" name="DGPDB_INT">
+      <Locked>1</Locked>
+      <ObjectId>56</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="61" parent="1" name="DBSNMP">
+      <Locked>1</Locked>
+      <ObjectId>63</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="62" parent="1" name="APPQOSSYS">
+      <Locked>1</Locked>
+      <ObjectId>67</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="63" parent="1" name="GSMCATUSER">
+      <Locked>1</Locked>
+      <ObjectId>68</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="64" parent="1" name="GGSYS">
+      <Locked>1</Locked>
+      <ObjectId>69</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="65" parent="1" name="XDB">
+      <Locked>1</Locked>
+      <ObjectId>71</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="66" parent="1" name="ANONYMOUS">
+      <Locked>1</Locked>
+      <ObjectId>72</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="67" parent="1" name="WMSYS">
+      <Locked>1</Locked>
+      <ObjectId>81</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="68" parent="1" name="OJVMSYS">
+      <Locked>1</Locked>
+      <ObjectId>90</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="69" parent="1" name="CTXSYS">
+      <Locked>1</Locked>
+      <ObjectId>92</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="70" parent="1" name="ORDSYS">
+      <Locked>1</Locked>
+      <ObjectId>94</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="71" parent="1" name="ORDDATA">
+      <Locked>1</Locked>
+      <ObjectId>95</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="72" parent="1" name="ORDPLUGINS">
+      <Locked>1</Locked>
+      <ObjectId>96</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="73" parent="1" name="SI_INFORMTN_SCHEMA">
+      <Locked>1</Locked>
+      <ObjectId>97</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="74" parent="1" name="OLAPSYS">
+      <Locked>1</Locked>
+      <ObjectId>100</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="75" parent="1" name="MDSYS">
+      <Locked>1</Locked>
+      <ObjectId>103</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="76" parent="1" name="MDDATA">
+      <Locked>1</Locked>
+      <ObjectId>104</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="77" parent="1" name="LBACSYS">
+      <Locked>1</Locked>
+      <ObjectId>106</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="78" parent="1" name="DVF">
+      <Locked>1</Locked>
+      <ObjectId>108</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="79" parent="1" name="C##ESBUSER">
+      <ObjectId>109</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="80" parent="1" name="C##FEX_OCT">
+      <ObjectId>110</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="81" parent="1" name="C##ESUSERS">
+      <ObjectId>111</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="82" parent="1" name="DVSYS">
+      <Locked>1</Locked>
+      <ObjectId>1279990</ObjectId>
+      <DefaultTablespaceName>SYSAUX</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="83" parent="1" name="SYSBACKUP">
+      <Locked>1</Locked>
+      <ObjectId>2147483617</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="84" parent="1" name="SYSDG">
+      <Locked>1</Locked>
+      <ObjectId>2147483618</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="85" parent="1" name="SYSKM">
+      <Locked>1</Locked>
+      <ObjectId>2147483619</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="86" parent="1" name="SYSRAC">
+      <ObjectId>2147483620</ObjectId>
+      <DefaultTablespaceName>USERS</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <user id="87" parent="1" name="XS$NULL">
+      <Locked>1</Locked>
+      <ObjectId>2147483638</ObjectId>
+      <DefaultTablespaceName>SYSTEM</DefaultTablespaceName>
+      <TemporaryTablespaceName>TEMP</TemporaryTablespaceName>
+    </user>
+    <sequence id="88" parent="34" name="ISEQ$$_76629">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-06.14:56:01</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-06.14:56:01</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>76630</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="89" parent="34" name="ISEQ$$_78335">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.12:05:55</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.12:05:55</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78336</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="90" parent="34" name="ISEQ$$_78338">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.12:09:52</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.12:09:52</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78339</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="91" parent="34" name="ISEQ$$_78343">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.12:19:23</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.12:19:23</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78344</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="92" parent="34" name="ISEQ$$_78347">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.12:31:15</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.12:31:15</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78348</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="93" parent="34" name="ISEQ$$_78351">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78352</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="94" parent="34" name="ISEQ$$_78354">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78355</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="95" parent="34" name="ISEQ$$_78358">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78359</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="96" parent="34" name="ISEQ$$_78535">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-06-25.16:46:01</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-06-25.16:46:01</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78536</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="97" parent="34" name="ISEQ$$_79203">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-04.23:32:43</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-04.23:32:43</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79204</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="98" parent="34" name="ISEQ$$_79235">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-06.01:00:03</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-06.01:00:03</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79236</ObjectId>
+      <SequenceIdentity>1(1)</SequenceIdentity>
+    </sequence>
+    <sequence id="99" parent="34" name="ISEQ$$_79288">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-08.18:58:09</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-08.18:58:09</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79289</ObjectId>
+      <SequenceIdentity>1(41)</SequenceIdentity>
+    </sequence>
+    <sequence id="100" parent="34" name="ISEQ$$_79318">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-09.11:18:16</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-09.11:18:16</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79319</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <sequence id="101" parent="34" name="ISEQ$$_79383">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-11.14:51:52</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-11.14:51:52</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79384</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <sequence id="102" parent="34" name="ISEQ$$_79417">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-12.10:44:39</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79418</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <sequence id="103" parent="34" name="ISEQ$$_79421">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-12.13:46:05</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.13:46:05</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79422</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <sequence id="104" parent="34" name="ISEQ$$_79424">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-12.15:28:41</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79425</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <sequence id="105" parent="34" name="ISEQ$$_79428">
+      <BelongsToColumn>1</BelongsToColumn>
+      <CacheSize>20</CacheSize>
+      <CreatedTimestamp>2024-07-12.18:58:52</CreatedTimestamp>
+      <DetailsLevel>2</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.18:58:52</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79429</ObjectId>
+      <SequenceIdentity>1(21)</SequenceIdentity>
+    </sequence>
+    <table id="106" parent="34" name="API_REGISTRY">
+      <CreatedTimestamp>2024-07-08.18:58:09</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-08.18:58:09</ModifiedTimestamp>
+      <ObjectId>79288</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="107" parent="34" name="AUDIT_LOG">
+      <CreatedTimestamp>2024-07-12.18:58:52</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.18:58:52</ModifiedTimestamp>
+      <ObjectId>79428</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="108" parent="34" name="CHN_REQUESTS">
+      <CreatedTimestamp>2024-06-25.16:46:01</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-06-25.16:46:01</ModifiedTimestamp>
+      <ObjectId>78535</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="109" parent="34" name="CHN_USERS">
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <ObjectId>78351</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="110" parent="34" name="ITS_3PARTY_API_CONFIG">
+      <CreatedTimestamp>2024-07-12.15:28:41</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <ObjectId>79424</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="111" parent="34" name="ITS_3RDPARTY_ADDR">
+      <CreatedTimestamp>2024-07-12.10:44:39</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <ObjectId>79417</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="112" parent="34" name="ITS_CRYPTO_CONFIG">
+      <CreatedTimestamp>2024-07-12.13:46:05</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-12.13:46:05</ModifiedTimestamp>
+      <ObjectId>79421</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="113" parent="34" name="ITS_SWITCH_REGISTRY">
+      <CreatedTimestamp>2024-07-11.14:51:52</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-11.14:51:52</ModifiedTimestamp>
+      <ObjectId>79383</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="114" parent="34" name="PUBLIC_CHANNEL">
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <ObjectId>78354</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <table id="115" parent="34" name="REGISTRY_USERS">
+      <CreatedTimestamp>2024-07-09.11:18:16</CreatedTimestamp>
+      <DetailsLevel>3</DetailsLevel>
+      <ModifiedTimestamp>2024-07-09.11:18:16</ModifiedTimestamp>
+      <ObjectId>79318</ObjectId>
+      <TemporaryPreserve>1</TemporaryPreserve>
+    </table>
+    <data-file id="116" parent="43" name="C:\USERS\23490\ORACLE\ORADATA\ORCL\SYSTEM01.DBF">
+      <AutoExtensible>1</AutoExtensible>
+      <AvailabilityStatus>A</AvailabilityStatus>
+      <FileId>1</FileId>
+      <FileSize>175360</FileSize>
+      <IncrementBy>1280</IncrementBy>
+      <MaxSize>4194302</MaxSize>
+      <OnlineStatus>S</OnlineStatus>
+      <Position>1</Position>
+      <UserSize>175232</UserSize>
+    </data-file>
+    <data-file id="117" parent="44" name="C:\USERS\23490\ORACLE\ORADATA\ORCL\SYSAUX01.DBF">
+      <AutoExtensible>1</AutoExtensible>
+      <AvailabilityStatus>A</AvailabilityStatus>
+      <FileId>3</FileId>
+      <FileSize>153600</FileSize>
+      <IncrementBy>1280</IncrementBy>
+      <MaxSize>4194302</MaxSize>
+      <OnlineStatus>E</OnlineStatus>
+      <Position>3</Position>
+      <UserSize>153472</UserSize>
+    </data-file>
+    <data-file id="118" parent="45" name="C:\USERS\23490\ORACLE\ORADATA\ORCL\UNDOTBS01.DBF">
+      <AutoExtensible>1</AutoExtensible>
+      <AvailabilityStatus>A</AvailabilityStatus>
+      <FileId>4</FileId>
+      <FileSize>14720</FileSize>
+      <IncrementBy>640</IncrementBy>
+      <MaxSize>4194302</MaxSize>
+      <OnlineStatus>E</OnlineStatus>
+      <Position>4</Position>
+      <UserSize>14592</UserSize>
+    </data-file>
+    <data-file id="119" parent="46" name="C:\USERS\23490\ORACLE\ORADATA\ORCL\TEMP01.DBF">
+      <AutoExtensible>1</AutoExtensible>
+      <FileId>1</FileId>
+      <FileSize>30336</FileSize>
+      <IncrementBy>80</IncrementBy>
+      <MaxSize>4194302</MaxSize>
+      <Position>1</Position>
+      <UserSize>30208</UserSize>
+    </data-file>
+    <data-file id="120" parent="47" name="C:\USERS\23490\ORACLE\ORADATA\ORCL\USERS01.DBF">
+      <AutoExtensible>1</AutoExtensible>
+      <AvailabilityStatus>A</AvailabilityStatus>
+      <FileId>7</FileId>
+      <FileSize>640</FileSize>
+      <IncrementBy>160</IncrementBy>
+      <MaxSize>4194302</MaxSize>
+      <OnlineStatus>E</OnlineStatus>
+      <Position>7</Position>
+      <UserSize>512</UserSize>
+    </data-file>
+    <check id="121" parent="106" name="SYS_C008507">
+      <ColNames>DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-08.18:58:09</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="122" parent="106" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79288</SequenceName>
+    </column>
+    <column id="123" parent="106" name="APP_CODE">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="124" parent="106" name="APP_NAME">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="125" parent="106" name="CREATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="126" parent="106" name="CREATED_BY">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="127" parent="106" name="APPROVAL">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="128" parent="106" name="APPROVE_BY">
+      <Position>7</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="129" parent="106" name="LAST_MODIFY_BY">
+      <Position>8</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="130" parent="106" name="LAST_MODIFY_DATE">
+      <Position>9</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="131" parent="106" name="DISABLED">
+      <Position>10</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="132" parent="106" name="PK_API_REGISTRY">
+      <ColNames>APP_CODE</ColNames>
+      <CreatedTimestamp>2024-07-08.18:58:09</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-08.18:58:09</ModifiedTimestamp>
+      <ObjectId>79290</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="133" parent="106" name="PK_API_REGISTRY">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-08.18:58:09</ModifiedTimestamp>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>PK_API_REGISTRY</UnderlyingIndexName>
+    </key>
+    <column id="134" parent="107" name="AUDIT_ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79428</SequenceName>
+    </column>
+    <column id="135" parent="107" name="TABLE_NAME">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="136" parent="107" name="OPERATION">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(10 byte)|0s</StoredType>
+    </column>
+    <column id="137" parent="107" name="OPERATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="138" parent="107" name="OPERATED_BY">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="139" parent="107" name="OLD_VALUE">
+      <Position>6</Position>
+      <StoredType>CLOB|0s</StoredType>
+    </column>
+    <column id="140" parent="107" name="NEW_VALUE">
+      <Position>7</Position>
+      <StoredType>CLOB|0s</StoredType>
+    </column>
+    <index id="141" parent="107" name="SYS_C008576">
+      <ColNames>AUDIT_ID</ColNames>
+      <CreatedTimestamp>2024-07-12.18:58:52</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.18:58:52</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79434</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="142" parent="107" name="SYS_C008576">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.18:58:52</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>SYS_C008576</UnderlyingIndexName>
+    </key>
+    <column id="143" parent="108" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_78535</SequenceName>
+    </column>
+    <column id="144" parent="108" name="NAME">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="145" parent="108" name="CODE">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="146" parent="108" name="DAILY_TRANSACTION_LIMIT">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>NUMBER(18,2)|0s</StoredType>
+    </column>
+    <column id="147" parent="108" name="SINGLE_TRANSACTION_LIMIT">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>NUMBER(18,2)|0s</StoredType>
+    </column>
+    <column id="148" parent="108" name="STATUS">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="149" parent="108" name="NAME_OF_USER_THAT_APPROVE">
+      <Position>7</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="150" parent="108" name="NAME_OF_USER_THAT_MAKE_REQUEST">
+      <NotNull>1</NotNull>
+      <Position>8</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="151" parent="108" name="DATE_TIME">
+      <NotNull>1</NotNull>
+      <Position>9</Position>
+      <StoredType>TIMESTAMP(6)|0s</StoredType>
+    </column>
+    <column id="152" parent="108" name="MESSAGE">
+      <Position>10</Position>
+      <StoredType>CLOB|0s</StoredType>
+    </column>
+    <column id="153" parent="108" name="ACTION">
+      <NotNull>1</NotNull>
+      <Position>11</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <index id="154" parent="108" name="SYS_C008415">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-06-25.16:46:01</CreatedTimestamp>
+      <ModifiedTimestamp>2024-06-25.16:46:01</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78539</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="155" parent="108" name="SYS_C008415">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-06-25.16:46:01</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>SYS_C008415</UnderlyingIndexName>
+    </key>
+    <column id="156" parent="109" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_78351</SequenceName>
+    </column>
+    <column id="157" parent="109" name="USERNAME">
+      <Position>2</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="158" parent="109" name="ROLE">
+      <Position>3</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <index id="159" parent="109" name="SYS_C008379">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78353</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="160" parent="109" name="SYS_C008379">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>SYS_C008379</UnderlyingIndexName>
+    </key>
+    <check id="161" parent="110" name="SYS_C008569">
+      <ColNames>DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="162" parent="110" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79424</SequenceName>
+    </column>
+    <column id="163" parent="110" name="APP_CODE">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="164" parent="110" name="SWITCH_CODE">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="165" parent="110" name="TSQ_URL">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="166" parent="110" name="TRF_URL">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="167" parent="110" name="CREATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="168" parent="110" name="CREATED_BY">
+      <NotNull>1</NotNull>
+      <Position>7</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="169" parent="110" name="APPROVAL">
+      <NotNull>1</NotNull>
+      <Position>8</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="170" parent="110" name="APPROVE_BY">
+      <Position>9</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="171" parent="110" name="LAST_MODIFY_BY">
+      <Position>10</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="172" parent="110" name="LAST_MODIFY_DATE">
+      <Position>11</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="173" parent="110" name="DISABLED">
+      <Position>12</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="174" parent="110" name="PK_ITS_3PARTY_API_CONFIG">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-07-12.15:28:41</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <ObjectId>79426</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <index id="175" parent="110" name="ITS3PARTYAPICFGIDX1">
+      <ColNames>APP_CODE
+SWITCH_CODE</ColNames>
+      <CreatedTimestamp>2024-07-12.15:28:41</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <ObjectId>79427</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="176" parent="110" name="PK_ITS_3PARTY_API_CONFIG">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.15:28:41</ModifiedTimestamp>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>PK_ITS_3PARTY_API_CONFIG</UnderlyingIndexName>
+    </key>
+    <check id="177" parent="111" name="SYS_C008548">
+      <ColNames>DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="178" parent="111" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79417</SequenceName>
+    </column>
+    <column id="179" parent="111" name="APP_CODE">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="180" parent="111" name="SWITCH_CODE">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="181" parent="111" name="IP_ADDR">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="182" parent="111" name="CREATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="183" parent="111" name="CREATED_BY">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="184" parent="111" name="APPROVAL">
+      <NotNull>1</NotNull>
+      <Position>7</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="185" parent="111" name="APPROVE_BY">
+      <Position>8</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="186" parent="111" name="LAST_MODIFY_BY">
+      <Position>9</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="187" parent="111" name="LAST_MODIFY_DATE">
+      <Position>10</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="188" parent="111" name="DISABLED">
+      <Position>11</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="189" parent="111" name="PK_ITS_3PARTY_ADDR">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-07-12.10:44:39</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <ObjectId>79419</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <index id="190" parent="111" name="ITS3PARTYADDRIDX1">
+      <ColNames>APP_CODE
+SWITCH_CODE</ColNames>
+      <CreatedTimestamp>2024-07-12.10:44:39</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <ObjectId>79420</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="191" parent="111" name="PK_ITS_3PARTY_ADDR">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.10:44:39</ModifiedTimestamp>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>PK_ITS_3PARTY_ADDR</UnderlyingIndexName>
+    </key>
+    <check id="192" parent="112" name="SYS_C008559">
+      <ColNames>DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.13:46:05</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="193" parent="112" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79421</SequenceName>
+    </column>
+    <column id="194" parent="112" name="APP_CODE">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="195" parent="112" name="SWITCH_CODE">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="196" parent="112" name="ITS_PRIVATE_KEYFILE">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="197" parent="112" name="ITS_PUBLIC_KEYFILE">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="198" parent="112" name="SWITCH_PUBLIC_KEYFILE">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="199" parent="112" name="CREATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>7</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="200" parent="112" name="CREATED_BY">
+      <NotNull>1</NotNull>
+      <Position>8</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="201" parent="112" name="APPROVAL">
+      <NotNull>1</NotNull>
+      <Position>9</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="202" parent="112" name="APPROVE_BY">
+      <Position>10</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="203" parent="112" name="LAST_MODIFY_BY">
+      <Position>11</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="204" parent="112" name="LAST_MODIFY_DATE">
+      <Position>12</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="205" parent="112" name="DISABLED">
+      <Position>13</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="206" parent="112" name="PK_ITS_CRYPTO_CONFIG">
+      <ColNames>APP_CODE
+SWITCH_CODE</ColNames>
+      <CreatedTimestamp>2024-07-12.13:46:05</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-12.13:46:05</ModifiedTimestamp>
+      <ObjectId>79423</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="207" parent="112" name="PK_ITS_CRYPTO_CONFIG">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-12.13:46:05</ModifiedTimestamp>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>PK_ITS_CRYPTO_CONFIG</UnderlyingIndexName>
+    </key>
+    <check id="208" parent="113" name="SYS_C008523">
+      <ColNames>DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-11.14:51:53</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="209" parent="113" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79383</SequenceName>
+    </column>
+    <column id="210" parent="113" name="SWITCH_CODE">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(20 byte)|0s</StoredType>
+    </column>
+    <column id="211" parent="113" name="SWITCH_NAME">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="212" parent="113" name="CREATION_DATE">
+      <NotNull>1</NotNull>
+      <Position>4</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="213" parent="113" name="CREATED_BY">
+      <NotNull>1</NotNull>
+      <Position>5</Position>
+      <StoredType>VARCHAR2(30 byte)|0s</StoredType>
+    </column>
+    <column id="214" parent="113" name="APPROVAL">
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="215" parent="113" name="APPROVE_BY">
+      <Position>7</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="216" parent="113" name="LAST_MODIFY_BY">
+      <Position>8</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <column id="217" parent="113" name="LAST_MODIFY_DATE">
+      <Position>9</Position>
+      <StoredType>DATE|0s</StoredType>
+    </column>
+    <column id="218" parent="113" name="DISABLED">
+      <Position>10</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="219" parent="113" name="PK_ITS_SWITCH_REGISTRY">
+      <ColNames>SWITCH_CODE</ColNames>
+      <CreatedTimestamp>2024-07-11.14:51:53</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-11.14:51:53</ModifiedTimestamp>
+      <ObjectId>79385</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="220" parent="113" name="PK_ITS_SWITCH_REGISTRY">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-11.14:51:53</ModifiedTimestamp>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>PK_ITS_SWITCH_REGISTRY</UnderlyingIndexName>
+    </key>
+    <check id="221" parent="114" name="SYS_C008383">
+      <ColNames>IS_DISABLED</ColNames>
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Predicate>is_disabled IN (&apos;true&apos;, &apos;false&apos;)</Predicate>
+    </check>
+    <column id="222" parent="114" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_78354</SequenceName>
+    </column>
+    <column id="223" parent="114" name="NAME">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="224" parent="114" name="CODE">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="225" parent="114" name="DAILY_TRANSACTION_LIMIT">
+      <Position>4</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+    </column>
+    <column id="226" parent="114" name="SINGLE_TRANSACTION_LIMIT">
+      <Position>5</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+    </column>
+    <column id="227" parent="114" name="IS_DISABLED">
+      <Position>6</Position>
+      <StoredType>VARCHAR2(5 byte)|0s</StoredType>
+    </column>
+    <index id="228" parent="114" name="SYS_C008384">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78356</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <index id="229" parent="114" name="SYS_C008385">
+      <ColNames>NAME</ColNames>
+      <CreatedTimestamp>2024-06-18.13:12:17</CreatedTimestamp>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>78357</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="230" parent="114" name="SYS_C008384">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>SYS_C008384</UnderlyingIndexName>
+    </key>
+    <key id="231" parent="114" name="SYS_C008385">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-06-18.13:12:17</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <UnderlyingIndexName>SYS_C008385</UnderlyingIndexName>
+    </key>
+    <column id="232" parent="115" name="ID">
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StoredType>NUMBER(*)|0s</StoredType>
+      <SequenceName>ISEQ$$_79318</SequenceName>
+    </column>
+    <column id="233" parent="115" name="USERNAME">
+      <Position>2</Position>
+      <StoredType>VARCHAR2(255 byte)|0s</StoredType>
+    </column>
+    <column id="234" parent="115" name="ROLE">
+      <Position>3</Position>
+      <StoredType>VARCHAR2(50 byte)|0s</StoredType>
+    </column>
+    <index id="235" parent="115" name="SYS_C008516">
+      <ColNames>ID</ColNames>
+      <CreatedTimestamp>2024-07-09.11:18:16</CreatedTimestamp>
+      <ModifiedTimestamp>2024-07-09.11:18:16</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>79320</ObjectId>
+      <Unique>1</Unique>
+      <TablespaceName>USERS</TablespaceName>
+    </index>
+    <key id="236" parent="115" name="SYS_C008516">
+      <InitiallyDeferred>1</InitiallyDeferred>
+      <ModifiedTimestamp>2024-07-09.11:18:16</ModifiedTimestamp>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>SYS_C008516</UnderlyingIndexName>
+    </key>
+  </database-model>
+</dataSource>

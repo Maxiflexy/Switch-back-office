@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b839a705-0801-4ad0-a81e-eca1cba1f315" name="Changes" comment="pushed latest updates">
+      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/CreateUser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/NotificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/UpdateUserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/services/UserManagementServlet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/util/Email.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/util/EmailNotification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/util/EmailUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/USER_CREATION.tpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/b7b98eec-a3aa-45e1-b8f9-f7a7f11cddf1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/b7b98eec-a3aa-45e1-b8f9-f7a7f11cddf1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/constants/AppConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/constants/AppConstants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/AuthenticationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/AuthenticationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/upload/ApproveFileUpload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/upload/ApproveFileUpload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/DBHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/DBHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/start/SwitchApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/start/SwitchApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/util/ProcessUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/util/ProcessUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/System.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/System.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/script.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/script.sql" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Dockerfile" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="registry_dev" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;adekzs&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:INFOMETICS-UBA/Switch-back-office.git&quot;,
+    &quot;accountId&quot;: &quot;b1b2861a-ea10-4ecc-ae03-cfc8656414c1&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2blJEIn1YYPA9E2S4vAnUo2DctX" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Encrypter.executor": "Run",
+    "Application.SwitchApplication.executor": "Run",
+    "Docker.Dockerfile build.executor": "Run",
+    "Docker.Dockerfile.executor": "Run",
+    "Docker.docker-compose.yml: Compose Deployment.executor": "Run",
+    "Maven.switch-backoffice [clean].executor": "Run",
+    "Maven.switch-backoffice [package].executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "ft/add__docker",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Michael/Documents/Laptop/uba/Switch Back-office/src/main/resources",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="persistence" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Michael\Documents\Laptop\uba\Switch Back-office\src\main\resources" />
+      <recent name="C:\Users\Michael\Documents\Laptop\uba\Switch Back-office\src\main\java\util" />
+      <recent name="C:\Users\Michael\Documents\Laptop\uba\Switch Back-office\src\main\java\messaging" />
+      <recent name="C:\Users\INFOMETICS3\Desktop\uba\Switch Back-office\util" />
+      <recent name="C:\Users\INFOMETICS3\Desktop\uba\Switch Back-office" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources" />
+      <recent name="$PROJECT_DIR$/src/main/java" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="messaging" />
+      <recent name="services" />
+      <recent name="util" />
+      <recent name="services.performance.endpoints" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.SwitchApplication">
+    <configuration default="true" type="AZURE_FUNCTION_SUPPORT" factoryName="Run Functions">
+      <option name="appName" />
+      <option name="appServicePlanName" />
+      <option name="appServicePlanResourceGroup" />
+      <option name="appSettingsKey" value="d39493c9-4290-48ff-a817-5eec6f21a880" />
+      <option name="artifact" />
+      <option name="debugOptions" />
+      <option name="deployment" />
+      <option name="deploymentStagingDirectoryPath" />
+      <option name="funcPath" />
+      <option name="functionHostArguments" />
+      <option name="hostJsonPath" />
+      <option name="insightsName" />
+      <option name="instrumentationKey" />
+      <option name="javaVersion" />
+      <option name="localSettingsJsonPath" />
+      <option name="moduleName" />
+      <option name="os" />
+      <option name="pricingTier" />
+      <option name="providerMap">
+        <map />
+      </option>
+      <option name="region" />
+      <option name="resourceGroup" />
+      <option name="stagingFolder" />
+      <option name="subscription" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Encrypter" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="util.Encrypter" />
+      <module name="switch-backoffice" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="util.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SwitchApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="start.SwitchApplication" />
+      <module name="switch-backoffice" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="start.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Dockerfile build" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="imageTag" value="maven3.8.6-openjdk-11_build" />
+          <option name="buildCliOptions" value="--target build" />
+          <option name="buildOnly" value="true" />
+          <option name="sourceFilePath" value="Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="sourceFilePath" value="Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
+      <deployment type="dockerfile">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Application.Encrypter" />
+      <item itemvalue="Application.SwitchApplication" />
+      <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+      <item itemvalue="Docker.Dockerfile" />
+      <item itemvalue="Docker.Dockerfile build" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.SwitchApplication" />
+        <item itemvalue="Application.Encrypter" />
+        <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+        <item itemvalue="Docker.Dockerfile" />
+        <item itemvalue="Docker.Dockerfile build" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-b114ca120d71-intellij.indexing.shared.core-IU-242.21829.227" />
+        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-IU-242.21829.227" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b839a705-0801-4ad0-a81e-eca1cba1f315" name="Changes" comment="" />
+      <created>1706783624175</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1706783624175</updated>
+      <workItem from="1706783631258" duration="3206000" />
+      <workItem from="1707232254884" duration="13740000" />
+      <workItem from="1708348474743" duration="1209000" />
+      <workItem from="1708443924658" duration="1597000" />
+      <workItem from="1709368949735" duration="362000" />
+      <workItem from="1709795466009" duration="9555000" />
+      <workItem from="1709877489926" duration="84681000" />
+      <workItem from="1710484220919" duration="24025000" />
+      <workItem from="1710655243118" duration="25404000" />
+      <workItem from="1710860017979" duration="23167000" />
+      <workItem from="1711043254178" duration="939000" />
+      <workItem from="1711102346239" duration="13774000" />
+      <workItem from="1711648632063" duration="44831000" />
+      <workItem from="1712050643692" duration="133158000" />
+      <workItem from="1713017313808" duration="8395000" />
+      <workItem from="1713799267305" duration="1485000" />
+      <workItem from="1714035217557" duration="6274000" />
+      <workItem from="1714468151804" duration="3140000" />
+      <workItem from="1714476251023" duration="941000" />
+      <workItem from="1714479528290" duration="3740000" />
+      <workItem from="1714568759440" duration="6893000" />
+      <workItem from="1715242623458" duration="3834000" />
+      <workItem from="1715332928436" duration="10210000" />
+      <workItem from="1716979645667" duration="18297000" />
+      <workItem from="1717167683609" duration="10832000" />
+      <workItem from="1717845838052" duration="2285000" />
+      <workItem from="1718105463900" duration="4185000" />
+      <workItem from="1718184417131" duration="2783000" />
+      <workItem from="1718367156694" duration="10623000" />
+      <workItem from="1719411708942" duration="1131000" />
+      <workItem from="1719498035982" duration="4038000" />
+      <workItem from="1720968131139" duration="19072000" />
+      <workItem from="1721657183023" duration="47307000" />
+      <workItem from="1724781929305" duration="15524000" />
+      <workItem from="1725801955743" duration="9247000" />
+      <workItem from="1726129089210" duration="702000" />
+      <workItem from="1727393373530" duration="7606000" />
+      <workItem from="1727882501033" duration="1842000" />
+      <workItem from="1734011376481" duration="21401000" />
+      <workItem from="1734589905821" duration="719000" />
+      <workItem from="1734920158602" duration="23874000" />
+      <workItem from="1738246379214" duration="617000" />
+      <workItem from="1738652046033" duration="6709000" />
+      <workItem from="1738912517936" duration="4121000" />
+      <workItem from="1738922129460" duration="845000" />
+      <workItem from="1739895630191" duration="635000" />
+      <workItem from="1740043691453" duration="6626000" />
+      <workItem from="1740409791749" duration="3683000" />
+      <workItem from="1741838864779" duration="594000" />
+      <workItem from="1742893046217" duration="1926000" />
+      <workItem from="1743742168868" duration="2231000" />
+      <workItem from="1744179118627" duration="10998000" />
+      <workItem from="1744353252061" duration="156000" />
+      <workItem from="1744353433122" duration="120000" />
+      <workItem from="1744353582347" duration="21000" />
+      <workItem from="1744353821576" duration="376000" />
+      <workItem from="1744354939121" duration="281000" />
+      <workItem from="1744355238800" duration="2966000" />
+      <workItem from="1744865484245" duration="597000" />
+      <workItem from="1744872065587" duration="465000" />
+      <workItem from="1746452247749" duration="663000" />
+      <workItem from="1747464844905" duration="1677000" />
+      <workItem from="1748330866900" duration="2526000" />
+    </task>
+    <task id="LOCAL-00001" summary="fixed issues">
+      <created>1721027319126</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1721027319126</updated>
+    </task>
+    <task id="LOCAL-00002" summary="fixed issues">
+      <created>1721191961140</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1721191961140</updated>
+    </task>
+    <task id="LOCAL-00003" summary="fixed issues">
+      <created>1721390984883</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1721390984883</updated>
+    </task>
+    <task id="LOCAL-00004" summary="fixed issues">
+      <created>1723778778266</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1723778778266</updated>
+    </task>
+    <task id="LOCAL-00005" summary="added validations for channel Ids">
+      <created>1724020611578</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1724020611578</updated>
+    </task>
+    <task id="LOCAL-00006" summary="added https">
+      <created>1724022947798</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1724022947798</updated>
+    </task>
+    <task id="LOCAL-00007" summary="added https">
+      <created>1725287250562</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1725287250562</updated>
+    </task>
+    <task id="LOCAL-00008" summary="docker modifications">
+      <option name="closed" value="true" />
+      <created>1733993985599</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1733993985599</updated>
+    </task>
+    <task id="LOCAL-00009" summary="removed otp validations">
+      <option name="closed" value="true" />
+      <created>1734020379921</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1734020379921</updated>
+    </task>
+    <task id="LOCAL-00010" summary="modified login query">
+      <option name="closed" value="true" />
+      <created>1734078327451</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1734078327451</updated>
+    </task>
+    <task id="LOCAL-00011" summary="modified apiregistry url">
+      <option name="closed" value="true" />
+      <created>1734363464687</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1734363464687</updated>
+    </task>
+    <task id="LOCAL-00012" summary="modified api urls">
+      <option name="closed" value="true" />
+      <created>1734417246636</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1734417246636</updated>
+    </task>
+    <task id="LOCAL-00013" summary="modified api urls">
+      <option name="closed" value="true" />
+      <created>1734426807390</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1734426807390</updated>
+    </task>
+    <task id="LOCAL-00014" summary="added validation for ip address and url, added date filter for logs">
+      <option name="closed" value="true" />
+      <created>1734947066407</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1734947066407</updated>
+    </task>
+    <task id="LOCAL-00015" summary="added validation for ip address and url, added date filter for logs">
+      <option name="closed" value="true" />
+      <created>1734949048876</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1734949048876</updated>
+    </task>
+    <task id="LOCAL-00016" summary="added validation for ip address and url, added date filter for logs">
+      <option name="closed" value="true" />
+      <created>1734953247837</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1734953247838</updated>
+    </task>
+    <task id="LOCAL-00017" summary="added log out feature">
+      <option name="closed" value="true" />
+      <created>1738657097783</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1738657097783</updated>
+    </task>
+    <task id="LOCAL-00018" summary="pushed latest updates">
+      <option name="closed" value="true" />
+      <created>1740469712298</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1740469712298</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.cfg" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="fixed issues" />
+    <MESSAGE value="added validations for channel Ids" />
+    <MESSAGE value="added https" />
+    <MESSAGE value="added excel functionalities" />
+    <MESSAGE value="docker modifications" />
+    <MESSAGE value="removed otp validations" />
+    <MESSAGE value="modified login query" />
+    <MESSAGE value="modified apiregistry url" />
+    <MESSAGE value="modified api urls" />
+    <MESSAGE value="added validation for ip address and url, added date filter for logs" />
+    <MESSAGE value="added log out feature" />
+    <MESSAGE value="pushed latest updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="pushed latest updates" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/switchService/UpdateSwitch.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/SwitchDbHelper.java</url>
+          <line>619</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/SwitchDbHelper.java</url>
+          <line>226</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/switchService/CreateSwitch.java</url>
+          <line>23</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>22</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/stats/endpoints/CreateEndpoint.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/stats/endpoints/CreateEndpoint.java</url>
+          <line>41</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/stats/endpoints/ApproveEndpoint.java</url>
+          <line>26</line>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/stats/endpoints/UpdateEndpoint.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>247</line>
+          <option name="timeStamp" value="43" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>361</line>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>311</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>551</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/PerformanceDbHelper.java</url>
+          <line>347</line>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/TransactionsDbHelper.java</url>
+          <line>112</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/FeeConfigValidator.java</url>
+          <line>97</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/FeeConfigValidator.java</url>
+          <line>142</line>
+          <option name="timeStamp" value="75" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/FeeConfigValidator.java</url>
+          <line>132</line>
+          <option name="timeStamp" value="76" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/FeeConfigDbHelper.java</url>
+          <line>142</line>
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/services/fileservlets/Approveupload.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/FeeConfigValidator.java</url>
+          <line>104</line>
+          <option name="timeStamp" value="85" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/ContraAccountDbHelper.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="87" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/InstitutionListValidator.java</url>
+          <line>103</line>
+          <option name="timeStamp" value="92" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/services/fileservlets/UploadServlet.java</url>
+          <line>96</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/services/fileservlets/UploadServlet.java</url>
+          <line>93</line>
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/FileUploadDbHelper.java</url>
+          <line>184</line>
+          <option name="timeStamp" value="95" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java</url>
+          <line>108</line>
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/FileUploadDbHelper.java</url>
+          <line>286</line>
+          <option name="timeStamp" value="100" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java</url>
+          <line>349</line>
+          <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java</url>
+          <line>101</line>
+          <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java</url>
+          <line>346</line>
+          <option name="timeStamp" value="104" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/ContraAccountDbHelper.java</url>
+          <line>73</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/TransactionsDbHelper.java</url>
+          <line>103</line>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java</url>
+          <line>27</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java</url>
+          <line>52</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java</url>
+          <line>101</line>
+          <option name="timeStamp" value="115" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/messaging/validator/InstitutionListValidator.java</url>
+          <line>88</line>
+          <option name="timeStamp" value="120" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java</url>
+          <line>285</line>
+          <option name="timeStamp" value="121" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/FileUploadDbHelper.java</url>
+          <line>294</line>
+          <option name="timeStamp" value="122" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/FileUploadDbHelper.java</url>
+          <line>310</line>
+          <option name="timeStamp" value="123" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/persistence/DBHelper.java</url>
+          <line>66</line>
+          <option name="timeStamp" value="126" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/service/servlet/ApiRegistryServlet.java</url>
+          <line>65</line>
+          <option name="timeStamp" value="127" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/service/servlet/ApiRegistryServlet.java</url>
+          <line>45</line>
+          <option name="timeStamp" value="128" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/service/servlet/SwitchRegistryServlet.java</url>
+          <line>36</line>
+          <option name="timeStamp" value="130" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/filters/TokenInvalidationFilter.java</url>
+          <line>15</line>
+          <option name="timeStamp" value="131" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/filters/TokenInvalidationFilter.java</url>
+          <line>29</line>
+          <option name="timeStamp" value="132" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="org.apache.tomcat.jdbc.pool.StatementFacade$StatementProxy" memberName="query" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+</project>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration status="info">
+    <Properties>
+        <Property name="logdir">../logs</Property>
+        <Property name="layout">%d [%t] %c- %m%n</Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="papssinfo"
+                     fileName="${logdir}/switch-api-info.log"
+                     filePattern="${logdir}/switch-api-info.%d{yyyy-MM-dd}-%i.log">
+
+
+            <PatternLayout pattern="${layout}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="1 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+        <RollingFile name="papsserror"
+                     fileName="${logdir}/switch-api-error.log"
+                     filePattern="${logdir}/switch-api-error.%d{yyyy-MM-dd}-%i.log">
+
+
+            <PatternLayout pattern="${layout}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="1 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+        <RollingFile name="papssfatal"
+                     fileName="${logdir}/switch-api-fatal.log"
+                     filePattern="${logdir}/switch-api-fatal.%d{yyyy-MM-dd}-%i.log">
+
+            <PatternLayout pattern="${layout}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="1 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="start" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Logger name="messaging" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Logger name="persistence" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Logger name="util" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Logger name="services" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Logger name="filters" level="debug" additivity="false">
+            <AppenderRef ref="papssinfo" />
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="papssfatal" />
+        </Root>
+    </Loggers>
+</Configuration>
