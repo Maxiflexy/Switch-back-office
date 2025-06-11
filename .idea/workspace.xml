@@ -4,31 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b839a705-0801-4ad0-a81e-eca1cba1f315" name="Changes" comment="pushed latest updates">
-      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/CreateUser.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/NotificationService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/messaging/UpdateUserService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/services/UserManagementServlet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/util/Email.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/util/EmailNotification.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/util/EmailUtil.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/USER_CREATION.tpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/b7b98eec-a3aa-45e1-b8f9-f7a7f11cddf1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/b7b98eec-a3aa-45e1-b8f9-f7a7f11cddf1.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/constants/AppConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/constants/AppConstants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/AuthenticationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/AuthenticationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/messaging/upload/ApproveFileUpload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/messaging/upload/ApproveFileUpload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/DBHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/DBHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/InstitutionListDbHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/InstitutionRouteDbHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/persistence/ResponseCodeNextActionDbHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/start/SwitchApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/start/SwitchApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/util/ProcessUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/util/ProcessUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/System.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/System.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/script.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/script.sql" afterDir="false" />
-    </list>
+    <list default="true" id="b839a705-0801-4ad0-a81e-eca1cba1f315" name="Changes" comment="pushed latest updates" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -58,12 +34,12 @@
     &quot;assignee&quot;: &quot;adekzs&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:INFOMETICS-UBA/Switch-back-office.git&quot;,
-    &quot;accountId&quot;: &quot;b1b2861a-ea10-4ecc-ae03-cfc8656414c1&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Maxiflexy/Switch-back-office.git",
+    "accountId": "ea51ebb6-9b48-4748-923b-a2a58686387a"
   }
-}</component>
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -95,7 +71,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "ft/add__docker",
+    "git-widget-placeholder": "test-branch",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Michael/Documents/Laptop/uba/Switch Back-office/src/main/resources",
     "node.js.detected.package.eslint": "true",
@@ -125,10 +101,11 @@
       <recent name="$PROJECT_DIR$/src/main/java" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="services.transactions" />
+      <recent name="messaging.transactions" />
+      <recent name="persistence" />
       <recent name="messaging" />
       <recent name="services" />
-      <recent name="util" />
-      <recent name="services.performance.endpoints" />
     </key>
   </component>
   <component name="RunManager" selected="Application.SwitchApplication">

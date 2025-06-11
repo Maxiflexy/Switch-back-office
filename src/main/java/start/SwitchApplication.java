@@ -27,6 +27,7 @@ import services.serviceProvider.Service;
 import services.switchController.ApproveSwitchServlet;
 import services.switchController.Switch;
 import services.transactions.FailedRetrialServlet;
+import services.transactions.PendingTransactionServlet;
 import services.virtualaccount.ApproveVirtualAccountServlet;
 import services.virtualaccount.VirtualAccount;
 import util.Encrypter;
@@ -237,7 +238,8 @@ public class SwitchApplication {
             Tomcat.addServlet(context, "FailedRetrialServlet", new FailedRetrialServlet());
             context.addServletMappingDecoded(apiContext + "/transactions/failed", "FailedRetrialServlet");
 
-
+            Tomcat.addServlet(context, "PendingTransactionServlet", new PendingTransactionServlet());
+            context.addServletMappingDecoded(apiContext + "/transactions/pending", "PendingTransactionServlet");
 
 
             StandardContext standardContext = (StandardContext) context;
