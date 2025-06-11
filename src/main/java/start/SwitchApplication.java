@@ -26,6 +26,7 @@ import services.serviceProvider.ApproveServiceServlet;
 import services.serviceProvider.Service;
 import services.switchController.ApproveSwitchServlet;
 import services.switchController.Switch;
+import services.transactions.FailedRetrialServlet;
 import services.virtualaccount.ApproveVirtualAccountServlet;
 import services.virtualaccount.VirtualAccount;
 import util.Encrypter;
@@ -109,7 +110,7 @@ public class SwitchApplication {
             context.setAddWebinfClassesResources(false);
             FilterDef fd = new FilterDef();
             fd.setFilterClass(CORSFilter.class.getName());
-            fd.setFilterName("CorsFilter"); 
+            fd.setFilterName("CorsFilter");
             FilterMap fm = new FilterMap();
             fm.setFilterName("CorsFilter");
             fm.addURLPattern("/*");
@@ -232,6 +233,9 @@ public class SwitchApplication {
 
             Tomcat.addServlet(context, "auditLogServlet", new AuditLogServlet());
             context.addServletMappingDecoded(apiContext +"/auditLog/*", "auditLogServlet");
+
+            Tomcat.addServlet(context, "FailedRetrialServlet", new FailedRetrialServlet());
+            context.addServletMappingDecoded(apiContext + "/transactions/failed", "FailedRetrialServlet");
 
 
 
