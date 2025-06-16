@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import util.BaseBean;
 import util.JsonUtil;
 
-import javax.json.Json;
 import javax.json.JsonObject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

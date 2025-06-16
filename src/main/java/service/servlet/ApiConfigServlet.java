@@ -3,7 +3,6 @@ package service.servlet;
 import dao.ApiConfigDAO;
 import dao.AuditLogDAO;
 import dao.CustomDAO;
-import messaging.RequestValidator;
 import messaging.ValidateResponse;
 import services.servlets.BaseServlet;
 import util.BaseBean;
@@ -17,9 +16,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import static constants.RegAppConstants.*;
+import static constants.RegAppConstants.ITS_3PARTY_API_CONFIG;
+import static constants.RegAppConstants.TB_3PARTY_API_CONFIG;
 import static messaging.RequestValidator.validateURL;
-import static util.JwtUtil.getToken;
 import static util.JwtUtil.getUsername;
 
 public class ApiConfigServlet extends BaseServlet {

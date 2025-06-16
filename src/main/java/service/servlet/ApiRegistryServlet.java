@@ -20,7 +20,6 @@ import java.util.List;
 
 import static constants.RegAppConstants.API_REGISTRY;
 import static constants.RegAppConstants.TB_API_REGISTRY;
-import static util.JwtUtil.getToken;
 import static util.JwtUtil.getUsername;
 
 

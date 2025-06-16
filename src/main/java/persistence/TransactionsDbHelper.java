@@ -402,4 +402,150 @@ public class TransactionsDbHelper {
         }
         return response;
     }
+
+
+    public static boolean fetchPendingInflowTransactions(BaseBean requestBean) {
+        if (requestBean.getString("size").equals("")) {
+            requestBean.setString("size", "10");
+        }
+        if (requestBean.getString("page").equals("")) {
+            requestBean.setString("page", "1");
+        }
+
+        String limit = requestBean.getString("size");
+        String offset = String.valueOf((Integer.parseInt(requestBean.getString("page")) - 1) * Integer.parseInt(limit));
+        String query = "SELECT requestdate, sessionid,  amount".concat(createPendingInflowTransactionQuery(requestBean));
+        query = query.concat(" OFFSET ").concat(offset).concat(" ROWS FETCH NEXT ").concat(limit).concat(" ROWS ONLY");
+
+        boolean success = false;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching uploaded files {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingInflowStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                List<BaseBean> transactions = new ArrayList<>();
+                while (rs.next()) {
+                    BaseBean documentBean = new BaseBean();
+                    try {
+                        documentBean.put("tran_ref", rs.getString("sessionid"));
+                        documentBean.put("tran_date", rs.getString("requestdate"));
+                        documentBean.put("tran_amt", rs.getString("amount"));
+                        transactions.add(documentBean);
+                    } catch (Exception e) {
+                        LOG.error(e);
+                    }
+                }
+                requestBean.setString("jsonBean", JsonUtil.convertBaseBeanListToJsonString(transactions));
+                fetchTotalRecordCount(requestBean);
+                success = true;
+            } catch (SQLException e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+                e.printStackTrace();
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+        return success;
+
+
+    }
+
+    private static void createPendingInflowStatementVariables(PreparedStatement ps, BaseBean requestBean) throws SQLException {
+        int kk = 0;
+        if (requestBean.getString("operation_type").equalsIgnoreCase("posting")) {
+            ps.setString(++kk, "FTSingleCreditRequest");
+            ps.setString(++kk, "00");
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, "0");
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            ps.setString(++kk, "FTSingleCreditRequest");
+            ps.setString(++kk, "00");
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, "0");
+        }
+    }
+
+
+    private static void fetchTotalRecordCount(BaseBean requestBean) {
+        String query = "SELECT COUNT(*) as count".concat(createPendingInflowTransactionQuery(requestBean));
+
+        boolean success = false;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching  transaction count {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingInflowStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    requestBean.setString("total_count", rs.getString("count"));
+                }
+                success = true;
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+                e.printStackTrace();
+
+            }
+
+
+        } catch (SQLException e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+
+    }
+
+    private static String createPendingInflowTransactionQuery(BaseBean requestBean) {
+        StringBuilder query = new StringBuilder();
+        if (requestBean.getString("operation_type").equalsIgnoreCase("posting")) {
+            query.append(" from ")
+                    .append(NIP_INFLOW_TRANSACTION)
+                    .append(" where TRANTYPE=? and tsq_2_rsp_code =? and tsq_2_date between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (c24_rsp_flg='N' OR c24_rsp_code NOT IN ('000','913')) and txn_posting_fallback_flg='N' and tranid > ? order by tranid asc");
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            query.append(" from ")
+                    .append(NIP_INFLOW_TRANSACTION)
+                    .append(" where trantype= ? and responsecode = ? and responsedate between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (tsq_2_flg='N' OR tsq_2_rsp_code in ('97', '99','25')) and tsq_fallback_flg='N' and TranID > ? order by TranID asc");
+        }
+        return query.toString();
+    }
 }

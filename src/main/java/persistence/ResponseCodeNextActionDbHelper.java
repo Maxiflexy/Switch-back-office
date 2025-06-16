@@ -14,7 +14,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static constants.AppConstants.DbTables.*;
+import static constants.AppConstants.DbTables.RESPONSE_CODE;
+import static constants.AppConstants.DbTables.RESPONSE_CODE_MC;
 
 public class ResponseCodeNextActionDbHelper implements FileUploadOps, FetchRequest {
 

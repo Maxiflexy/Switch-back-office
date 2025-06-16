@@ -5,7 +5,6 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import exceptions.CustomException;
 import messaging.FileValidator;
-import messaging.RequestValidator;
 import messaging.fileUtils.RowValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -56,7 +56,7 @@ public class GetUsers extends BaseServlet {
             if (APPLICATION_JSON.equalsIgnoreCase(getContentType())) {
                 servletResponse.setContentType(APPLICATION_JSON);
                 servletResponse.setCharacterEncoding(UTF_8);
-                setExecutor(new messaging.UserService());
+                setExecutor(new UserService());
                 respStr = getExecutor().execute(requestStr);
                 out.print(respStr);
 

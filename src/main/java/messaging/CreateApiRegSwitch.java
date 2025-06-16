@@ -4,7 +4,6 @@ import dao.ApiRegistryDao;
 import exceptions.CustomException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import services.executors.RequestExecutor;
 import util.BaseBean;
 import util.ResponseUtil;
 

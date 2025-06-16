@@ -12,7 +12,6 @@ import java.util.List;
 
 import static constants.AppConstants.Constants.APP_CODE;
 import static constants.AppConstants.DbTables.*;
-import static constants.AppConstants.DbTables.TOKEN;
 
 
 public class DBHelper {

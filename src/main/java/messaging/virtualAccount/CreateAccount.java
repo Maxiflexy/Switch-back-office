@@ -16,7 +16,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 
 public class CreateAccount extends RequestValidator implements RequestExecutor {
-    final static Logger LOG = LogManager.getLogger(messaging.virtualAccount.CreateAccount.class);
+    final static Logger LOG = LogManager.getLogger(CreateAccount.class);
 
     @Override
     public String execute(String request, String currentUser, String actionId) {

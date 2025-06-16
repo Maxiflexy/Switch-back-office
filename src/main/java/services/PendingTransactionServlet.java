@@ -1,7 +1,7 @@
-package services.transactions;
+package services;
 
 import exceptions.CustomException;
-import messaging.transactions.FailedRetrialService;
+import messaging.transactions.FetchPendingTransactionService;
 import services.servlets.CustomBaseServlet;
 import util.ResponseUtil;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 import static util.JsonUtil.addObject;
 import static util.ResponseUtil.createDefaultResponse;
 
-public class FailedRetrialServlet extends CustomBaseServlet {
+public class PendingTransactionServlet extends CustomBaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
@@ -30,23 +30,21 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             String actionId = UUID.randomUUID().toString();
 
             JsonObjectBuilder builder = Json.createObjectBuilder();
-
-            // Extract query parameters
-            addObject(builder, "service_type", servletRequest.getParameter("service_type"));
-            addObject(builder, "request_status", servletRequest.getParameter("request_status"));
-            addObject(builder, "retrial_start_date", servletRequest.getParameter("retrial_start_date"));
-            addObject(builder, "retrial_end_date", servletRequest.getParameter("retrial_end_date"));
+            addObject(builder, "operation_type", servletRequest.getParameter("service_type"));
+            addObject(builder, "switch", servletRequest.getParameter("switch"));
+            addObject(builder, "start_date", servletRequest.getParameter("start_date"));
+            addObject(builder, "end_date", servletRequest.getParameter("end_date"));
             addObject(builder, "page", servletRequest.getParameter("page"));
             addObject(builder, "size", servletRequest.getParameter("size"));
 
             servletResponse.setStatus(ResponseUtil.HTTP_OK_STATUS_1_INT);
             servletResponse.setContentType(APPLICATION_JSON);
             servletResponse.setCharacterEncoding(UTF_8);
-            setExecutor(new FailedRetrialService());
+            setExecutor(new FetchPendingTransactionService());
+
 
             respStr = getExecutor().execute(builder.build().toString(), user, actionId);
             out.print(respStr);
-
         } catch (CustomException e) {
             assert out != null;
             servletResponse.setStatus(e.getStatusCode());
@@ -59,7 +57,6 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             LOG.error(e.getMessage(), e);
         }
         try {
-            assert out != null;
             out.flush();
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -70,22 +67,16 @@ public class FailedRetrialServlet extends CustomBaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
-        // This endpoint only supports GET requests
-        servletResponse.setStatus(405); // Method Not Allowed
-        servletResponse.getWriter().print("{\"status\":\"405\",\"message\":\"Method not allowed here try to . Use GET request.\"}");
+
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // This endpoint only supports GET requests
-        resp.setStatus(405); // Method Not Allowed
-        resp.getWriter().print("{\"status\":\"405\",\"message\":\"Method not allowed. Use GET request.\"}");
+
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // This endpoint only supports GET requests
-        resp.setStatus(405); // Method Not Allowed
-        resp.getWriter().print("{\"status\":\"405\",\"message\":\"Method not allowed. Use GET request.\"}");
+
     }
 }

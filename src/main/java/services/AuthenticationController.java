@@ -3,7 +3,6 @@ package services;
 import messaging.AuthenticationService;
 import services.servlets.BaseServlet;
 import util.CryptoUtils;
-import util.Encrypter;
 import util.JsonUtil;
 import util.ResponseUtil;
 
@@ -14,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Objects;
 
 import static util.JsonUtil.addObject;
 

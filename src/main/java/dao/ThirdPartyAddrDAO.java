@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import util.BaseBean;
 import util.ConnectionUtil;
-import util.XMLUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

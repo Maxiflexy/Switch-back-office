@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import static constants.RegAppConstants.*;
-import static util.JwtUtil.getToken;
+import static constants.RegAppConstants.ITS_CRYPTO_CONFIG;
+import static constants.RegAppConstants.TB_CRYPTO_CONFIG;
 import static util.JwtUtil.getUsername;
 
 public class CryptoConfigServlet extends BaseServlet {
