@@ -21,10 +21,8 @@ public class FailedRetrialService implements RequestExecutor {
 
     final static Logger LOG = LogManager.getLogger(FailedRetrialService.class);
 
-    // Define date formatters
+    // Define date formatter for validation only
     private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-    private static final DateTimeFormatter OUTPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
 
     @Override
     public String execute(String request, String currentUser, String actionId) {
@@ -32,19 +30,14 @@ public class FailedRetrialService implements RequestExecutor {
         JsonObject jsonRequest = JsonUtil.toJsonObject(request);
 
         try {
-            // Extract parameters from request
+            // Extract parameters from request (no date formatting - pass ISO dates directly to database)
             if (jsonRequest != null) {
                 requestBean.setString("service_type", JsonUtil.getJsonObjValue2(jsonRequest, "service_type"));
                 requestBean.setString("request_status", JsonUtil.getJsonObjValue2(jsonRequest, "request_status"));
 
-                // Format dates for Oracle compatibility
-                String startDate = JsonUtil.getJsonObjValue2(jsonRequest, "retrial_start_date");
-                String endDate = JsonUtil.getJsonObjValue2(jsonRequest, "retrial_end_date");
-
-                requestBean.setString("retrial_start_date", formatDateForOracle(startDate));
-                requestBean.setString("retrial_end_date", formatDateForOracle(endDate));
-                //requestBean.setString("retrial_start_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_start_date"));
-                //requestBean.setString("retrial_end_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_end_date"));
+                // Pass dates directly to database layer (ISO format)
+                requestBean.setString("retrial_start_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_start_date"));
+                requestBean.setString("retrial_end_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_end_date"));
 
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
@@ -65,32 +58,22 @@ public class FailedRetrialService implements RequestExecutor {
                 return createErrorResponse("400", "request_status must be one of: approved, pending, rejected");
             }
 
-            // Validate date format
+            // Validate date format (but don't format - let database handle conversion)
             if (!requestBean.getString("retrial_start_date").trim().isEmpty()) {
-                assert jsonRequest != null;
-                String originalStartDate = JsonUtil.getJsonObjValue2(jsonRequest, "retrial_start_date");
-                if (!isValidDateFormat(originalStartDate)) {
+                String startDate = requestBean.getString("retrial_start_date");
+                if (!isValidDateFormat(startDate)) {
                     return createErrorResponse("400", "Invalid retrial_start_date format. Expected: yyyy-MM-ddTHH:mm:ss");
                 }
-                LOG.info("Formatted start date: {}", requestBean.getString("retrial_start_date"));
+                LOG.info("Start date parameter validated: {}", startDate);
             }
 
             if (!requestBean.getString("retrial_end_date").trim().isEmpty()) {
-                assert jsonRequest != null;
-                String originalEndDate = JsonUtil.getJsonObjValue2(jsonRequest, "retrial_end_date");
-                if (!isValidDateFormat(originalEndDate)) {
+                String endDate = requestBean.getString("retrial_end_date");
+                if (!isValidDateFormat(endDate)) {
                     return createErrorResponse("400", "Invalid retrial_end_date format. Expected: yyyy-MM-ddTHH:mm:ss");
                 }
-                LOG.info("Formatted end date: {}", requestBean.getString("retrial_end_date"));
+                LOG.info("End date parameter validated: {}", endDate);
             }
-
-            // Validate and log date parameters for debugging
-//            if (!requestBean.getString("retrial_start_date").trim().isEmpty()) {
-//                LOG.info("Start date parameter received: {}", requestBean.getString("retrial_start_date"));
-//            }
-//            if (!requestBean.getString("retrial_end_date").trim().isEmpty()) {
-//                LOG.info("End date parameter received: {}", requestBean.getString("retrial_end_date"));
-//            }
 
             // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
@@ -99,7 +82,7 @@ public class FailedRetrialService implements RequestExecutor {
             LOG.info("Fetching failed retrial requests for service_type: {} and status: {}",
                     requestBean.getString("service_type"), requestBean.getString("request_status"));
 
-            // Call the database helper
+            // Call the database helper (database will handle TIMESTAMP conversion)
             boolean success = PostingRetrialDbHelper.getFailedRetrialRequests(requestBean);
 
             if (success) {
@@ -137,26 +120,7 @@ public class FailedRetrialService implements RequestExecutor {
     }
 
     /**
-     * Format date string from ISO format to Oracle-compatible format
-     * @param dateStr Input date string in format: yyyy-MM-ddTHH:mm:ss
-     * @return Formatted date string in format: yyyy-MM-dd HH:mm:ss, or original string if empty/null
-     */
-    private String formatDateForOracle(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty()) {
-            return dateStr;
-        }
-
-        try {
-            LocalDateTime dateTime = LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
-            return dateTime.format(OUTPUT_FORMATTER);
-        } catch (DateTimeParseException e) {
-            LOG.warn("Failed to parse date: {}. Using original value.", dateStr);
-            return dateStr; // Return original if parsing fails
-        }
-    }
-
-    /**
-     * Validate if the date string is in the expected format
+     * Validate if the date string is in the expected ISO format
      * @param dateStr Date string to validate
      * @return true if valid format, false otherwise
      */
@@ -169,10 +133,10 @@ public class FailedRetrialService implements RequestExecutor {
             LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
             return true;
         } catch (DateTimeParseException e) {
+            LOG.warn("Invalid date format: {}", dateStr);
             return false;
         }
     }
-
 
     private String createSuccessResponse(BaseBean requestBean) {
         try {

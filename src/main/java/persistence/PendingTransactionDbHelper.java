@@ -3,8 +3,12 @@ package persistence;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import util.BaseBean;
+import util.ConnectionUtil;
 import util.JsonUtil;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,11 +21,21 @@ public class PendingTransactionDbHelper {
     final static Logger LOG = LogManager.getLogger(PendingTransactionDbHelper.class);
 
     public static boolean getPendingTransactions(BaseBean requestBean) {
-        StringBuilder queryBuilder = new StringBuilder("SELECT n.PAYMENTREFERENCE, n.REQUESTDATE, n.ACCOUNTNUMBER, n.AMOUNT, n.BATCH_ID, n.NARRATION, n.C24_RSP_CODE, COALESCE(b.ERR_DESC, '') as ERR_DESC FROM ESBUSER.NIP_IN_FLW_V2 n LEFT JOIN ESBUSER.BANCS_CONNECT_RESPONSE b ON n.C24_RSP_CODE = b.ERR_CODE WHERE n.BATCH_ID = ?");
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT n.PAYMENTREFERENCE, ");
+        queryBuilder.append("TO_CHAR(n.REQUESTDATE, 'YYYY-MM-DD HH24:MI:SS') as REQUESTDATE, ");
+        queryBuilder.append("n.ACCOUNTNUMBER, n.AMOUNT, n.BATCH_ID, n.NARRATION, ");
+        queryBuilder.append("n.C24_RSP_CODE, COALESCE(b.ERR_DESC, '') as ERR_DESC ");
+        queryBuilder.append("FROM ESBUSER.NIP_IN_FLW_V2 n ");
+        queryBuilder.append("LEFT JOIN ESBUSER.BANCS_CONNECT_RESPONSE b ON n.C24_RSP_CODE = b.ERR_CODE ");
+        queryBuilder.append("WHERE n.BATCH_ID = ?");
 
-        StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(*) as total_count FROM ESBUSER.NIP_IN_FLW_V2 n WHERE n.BATCH_ID = ?");
+        StringBuilder countQueryBuilder = new StringBuilder();
+        countQueryBuilder.append("SELECT COUNT(*) as total_count FROM ESBUSER.NIP_IN_FLW_V2 n ");
+        countQueryBuilder.append("WHERE n.BATCH_ID = ?");
 
         List<Object> parameters = new ArrayList<>();
+
         // BATCH_ID is NUMBER(28,0) in database, so convert string to Long for proper parameter binding
         try {
             parameters.add(Long.parseLong(requestBean.getString("batch_id")));
@@ -31,19 +45,19 @@ public class PendingTransactionDbHelper {
             return false;
         }
 
-        // Add date range filters with smart formatting
+        // Handle TIMESTAMP date range filters with ISO format
         if (requestBean.containsKey("start_date") && !requestBean.getString("start_date").isEmpty()) {
-            queryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            String formattedStartDate = formatDateForDatabase(requestBean.getString("start_date"), true);
-            parameters.add(formattedStartDate);
+            queryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("start_date"));
+            LOG.info("Adding start date filter: {}", requestBean.getString("start_date"));
         }
 
         if (requestBean.containsKey("end_date") && !requestBean.getString("end_date").isEmpty()) {
-            queryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            String formattedEndDate = formatDateForDatabase(requestBean.getString("end_date"), false);
-            parameters.add(formattedEndDate);
+            queryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("end_date"));
+            LOG.info("Adding end date filter: {}", requestBean.getString("end_date"));
         }
 
         // Add sorting
@@ -71,14 +85,22 @@ public class PendingTransactionDbHelper {
         String countQuery = countQueryBuilder.toString();
 
         boolean success = false;
-        Connection cnn = ConnectionUtil.getConnection();
-        LOG.info("Fetching pending transactions: {}", query);
-
+        Connection cnn = null;
         PreparedStatement ps = null;
         PreparedStatement countPs = null;
+        ResultSet rs = null;
+        ResultSet countRs = null;
+
+        LOG.info("Executing query: {}", query);
+        LOG.info("Parameters: {}", parameters);
 
         try {
-            cnn.setAutoCommit(false);
+            cnn = ConnectionUtil.getConnection();
+            if (cnn == null) {
+                LOG.error("Failed to get database connection");
+                requestBean.setString("message", "Database connection failed");
+                return false;
+            }
 
             // First get the total count
             int totalRows = 0;
@@ -88,15 +110,15 @@ public class PendingTransactionDbHelper {
                 if (param instanceof Long) {
                     countPs.setLong(paramIndex++, (Long) param);
                 } else {
-                    countPs.setString(paramIndex++, param.toString());
+                    countPs.setObject(paramIndex++, param);
                 }
             }
 
-            ResultSet countRs = countPs.executeQuery();
+            countRs = countPs.executeQuery();
             if (countRs.next()) {
                 totalRows = countRs.getInt("total_count");
             }
-            countRs.close();
+            LOG.info("Total rows found: {}", totalRows);
 
             // Calculate total pages
             int totalPages = (int) Math.ceil((double) totalRows / size);
@@ -108,110 +130,57 @@ public class PendingTransactionDbHelper {
                 if (param instanceof Long) {
                     ps.setLong(paramIndex++, (Long) param);
                 } else {
-                    ps.setString(paramIndex++, param.toString());
+                    ps.setObject(paramIndex++, param);
                 }
             }
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex, size);
 
-            ResultSet rs = ps.executeQuery();
-            List<BaseBean> transactions = new ArrayList<>();
+            rs = ps.executeQuery();
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
             while (rs.next()) {
-                BaseBean transaction = new BaseBean();
-                transaction.setString("tran_ref", rs.getString("PAYMENTREFERENCE"));
-                transaction.setString("tran_date", rs.getString("REQUESTDATE"));
-                transaction.setString("acct_no", rs.getString("ACCOUNTNUMBER"));
-                transaction.setString("tran_amt", rs.getString("AMOUNT"));
-                transaction.setString("batch_id", rs.getString("BATCH_ID"));
-                transaction.setString("tran_narration", rs.getString("NARRATION"));
-                transaction.setString("response_code", rs.getString("C24_RSP_CODE"));
-                transaction.setString("response_desc", rs.getString("ERR_DESC"));
+                JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+                jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
+                jsonBuilder.add("tran_date", rs.getString("REQUESTDATE") != null ? rs.getString("REQUESTDATE") : "");
+                jsonBuilder.add("acct_no", rs.getString("ACCOUNTNUMBER") != null ? rs.getString("ACCOUNTNUMBER") : "");
+                jsonBuilder.add("tran_amt", rs.getString("AMOUNT") != null ? rs.getString("AMOUNT") : "");
+                jsonBuilder.add("batch_id", rs.getString("BATCH_ID") != null ? rs.getString("BATCH_ID") : "");
+                jsonBuilder.add("tran_narration", rs.getString("NARRATION") != null ? rs.getString("NARRATION") : "");
+                jsonBuilder.add("response_code", rs.getString("C24_RSP_CODE") != null ? rs.getString("C24_RSP_CODE") : "");
+                jsonBuilder.add("response_desc", rs.getString("ERR_DESC") != null ? rs.getString("ERR_DESC") : "");
 
-                transactions.add(transaction);
+                jsonArrayBuilder.add(jsonBuilder.build());
             }
 
             success = true;
-            requestBean.setString("pending_transactions", JsonUtil.convertBaseBeanListToJsonString(transactions));
+            requestBean.setString("pending_transactions", JsonUtil.toStr(jsonArrayBuilder.build()));
             requestBean.setString("total_rows", String.valueOf(totalRows));
             requestBean.setString("total_pages", String.valueOf(totalPages));
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
 
+            LOG.info("Successfully fetched {} pending transactions", totalRows);
+
+        } catch (SQLException e) {
+            LOG.error("SQL error in getPendingTransactions: {}", e.getMessage(), e);
+            requestBean.setString("message", "Database error: " + e.getMessage());
         } catch (Exception e) {
-            requestBean.setString("message", e.getMessage());
-            LOG.error("Error fetching pending transactions", e);
+            LOG.error("Error in getPendingTransactions: {}", e.getMessage(), e);
+            requestBean.setString("message", "Error processing request: " + e.getMessage());
         } finally {
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    LOG.error("Error closing PreparedStatement", e);
-                }
+            // Close resources in reverse order
+            try {
+                if (rs != null) rs.close();
+                if (countRs != null) countRs.close();
+                if (ps != null) ps.close();
+                if (countPs != null) countPs.close();
+                if (cnn != null) ConnectionUtil.closeConnection(cnn);
+            } catch (SQLException e) {
+                LOG.error("Error closing database resources", e);
             }
-            if (countPs != null) {
-                try {
-                    countPs.close();
-                } catch (SQLException e) {
-                    LOG.error("Error closing count PreparedStatement", e);
-                }
-            }
-            ConnectionUtil.closeConnection(cnn);
         }
 
         return success;
-    }
-
-    /**
-     * Formats date string for database usage with smart defaults
-     * @param dateStr The input date string from frontend
-     * @param isStartDate true for start date (adds 00:00:00), false for end date (adds 23:59:59)
-     * @return Formatted date string for database
-     */
-    private static String formatDateForDatabase(String dateStr, boolean isStartDate) {
-        if (dateStr == null || dateStr.trim().isEmpty()) {
-            return dateStr;
-        }
-
-        String trimmedDate = dateStr.trim();
-
-        // Check if date already contains time component (contains space and colon)
-        if (trimmedDate.contains(" ") && trimmedDate.contains(":")) {
-            // Date already has time component, return as-is
-            return trimmedDate;
-        }
-
-        // Check if it's just a date in YYYY-MM-DD format (10 characters)
-        if (trimmedDate.length() == 10 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            if (isStartDate) {
-                // For start date, add beginning of day
-                return trimmedDate + " 00:00:00";
-            } else {
-                // For end date, add end of day
-                return trimmedDate + " 23:59:59";
-            }
-        }
-
-        // Check if it's date with just time hours like "2024-01-01 10" (13 characters)
-        if (trimmedDate.length() == 13 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}")) {
-            if (isStartDate) {
-                return trimmedDate + ":00:00";
-            } else {
-                return trimmedDate + ":59:59";
-            }
-        }
-
-        // Check if it's date with hours and minutes like "2024-01-01 10:30" (16 characters)
-        if (trimmedDate.length() == 16 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}")) {
-            if (isStartDate) {
-                return trimmedDate + ":00";
-            } else {
-                return trimmedDate + ":59";
-            }
-        }
-
-        // For any other format, return as-is and let database handle validation
-        LOG.warn("Unexpected date format received: {}. Using as-is.", trimmedDate);
-        return trimmedDate;
     }
 }

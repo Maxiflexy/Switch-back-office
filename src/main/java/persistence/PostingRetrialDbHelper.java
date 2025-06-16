@@ -3,8 +3,12 @@ package persistence;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import util.BaseBean;
+import util.ConnectionUtil;
 import util.JsonUtil;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,11 +21,21 @@ public class PostingRetrialDbHelper {
     final static Logger LOG = LogManager.getLogger(PostingRetrialDbHelper.class);
 
     public static boolean getFailedRetrialRequests(BaseBean requestBean) {
-        StringBuilder queryBuilder = new StringBuilder("SELECT sno, service_type, retrial_start_date, retrial_end_date, created_by, creation_date, batch_id, batch_count, status, approved_by, approval_date, posting_date, posting_resp_flg, posting_resp_code, posting_retrial_count FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT sno, service_type, ");
+        queryBuilder.append("TO_CHAR(retrial_start_date, 'YYYY-MM-DD HH24:MI:SS') as retrial_start_date, ");
+        queryBuilder.append("TO_CHAR(retrial_end_date, 'YYYY-MM-DD HH24:MI:SS') as retrial_end_date, ");
+        queryBuilder.append("created_by, ");
+        queryBuilder.append("TO_CHAR(creation_date, 'YYYY-MM-DD HH24:MI:SS') as creation_date, ");
+        queryBuilder.append("batch_id, batch_count, status, approved_by, ");
+        queryBuilder.append("TO_CHAR(approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date, ");
+        queryBuilder.append("TO_CHAR(posting_date, 'YYYY-MM-DD HH24:MI:SS') as posting_date, ");
+        queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count ");
+        queryBuilder.append("FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
 
         StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(*) as total_count FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
 
-        List<String> parameters = new ArrayList<>();
+        List<Object> parameters = new ArrayList<>();
 
         // Add service_type filter
         if (requestBean.containsKey("service_type") && !requestBean.getString("service_type").isEmpty()) {
@@ -37,19 +51,19 @@ public class PostingRetrialDbHelper {
             parameters.add(requestBean.getString("request_status"));
         }
 
-        // Add date range filters with smart formatting
+        // Handle TIMESTAMP date range filters with ISO format
         if (requestBean.containsKey("retrial_start_date") && !requestBean.getString("retrial_start_date").isEmpty()) {
-            queryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            countQueryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            String formattedStartDate = formatDateForDatabase(requestBean.getString("retrial_start_date"), true);
-            parameters.add(formattedStartDate);
+            queryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("retrial_start_date"));
+            LOG.info("Adding start date filter: {}", requestBean.getString("retrial_start_date"));
         }
 
         if (requestBean.containsKey("retrial_end_date") && !requestBean.getString("retrial_end_date").isEmpty()) {
-            queryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            countQueryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')");
-            String formattedEndDate = formatDateForDatabase(requestBean.getString("retrial_end_date"), false);
-            parameters.add(formattedEndDate);
+            queryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("retrial_end_date"));
+            LOG.info("Adding end date filter: {}", requestBean.getString("retrial_end_date"));
         }
 
         // Add sorting
@@ -77,28 +91,36 @@ public class PostingRetrialDbHelper {
         String countQuery = countQueryBuilder.toString();
 
         boolean success = false;
-        Connection cnn = ConnectionUtil.getConnection();
-        LOG.info("Fetching failed retrial requests: {}", query);
-
+        Connection cnn = null;
         PreparedStatement ps = null;
         PreparedStatement countPs = null;
+        ResultSet rs = null;
+        ResultSet countRs = null;
+
+        LOG.info("Executing query: {}", query);
+        LOG.info("Parameters: {}", parameters);
 
         try {
-            cnn.setAutoCommit(false);
+            cnn = ConnectionUtil.getConnection();
+            if (cnn == null) {
+                LOG.error("Failed to get database connection");
+                requestBean.setString("message", "Database connection failed");
+                return false;
+            }
 
             // First get the total count
             int totalRows = 0;
             countPs = cnn.prepareStatement(countQuery);
             int paramIndex = 1;
-            for (String param : parameters) {
-                countPs.setString(paramIndex++, param);
+            for (Object param : parameters) {
+                countPs.setObject(paramIndex++, param);
             }
 
-            ResultSet countRs = countPs.executeQuery();
+            countRs = countPs.executeQuery();
             if (countRs.next()) {
                 totalRows = countRs.getInt("total_count");
             }
-            countRs.close();
+            LOG.info("Total rows found: {}", totalRows);
 
             // Calculate total pages
             int totalPages = (int) Math.ceil((double) totalRows / size);
@@ -106,117 +128,64 @@ public class PostingRetrialDbHelper {
             // Now get the actual data
             ps = cnn.prepareStatement(query);
             paramIndex = 1;
-            for (String param : parameters) {
-                ps.setString(paramIndex++, param);
+            for (Object param : parameters) {
+                ps.setObject(paramIndex++, param);
             }
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex, size);
 
-            ResultSet rs = ps.executeQuery();
-            List<BaseBean> retrialRequests = new ArrayList<>();
+            rs = ps.executeQuery();
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
             while (rs.next()) {
-                BaseBean retrialRequest = new BaseBean();
-                retrialRequest.setString("sno", rs.getString("sno"));
-                retrialRequest.setString("service_type", rs.getString("service_type"));
-                retrialRequest.setString("retrial_start_date", rs.getString("retrial_start_date"));
-                retrialRequest.setString("retrial_end_date", rs.getString("retrial_end_date"));
-                retrialRequest.setString("created_by", rs.getString("created_by"));
-                retrialRequest.setString("creation_date", rs.getString("creation_date"));
-                retrialRequest.setString("batch_id", rs.getString("batch_id"));
-                retrialRequest.setString("batch_count", rs.getString("batch_count"));
-                retrialRequest.setString("status", rs.getString("status"));
-                retrialRequest.setString("approved_by", rs.getString("approved_by"));
-                retrialRequest.setString("approval_date", rs.getString("approval_date"));
-                retrialRequest.setString("posting_date", rs.getString("posting_date"));
-                retrialRequest.setString("posting_resp_flg", rs.getString("posting_resp_flg"));
-                retrialRequest.setString("posting_resp_code", rs.getString("posting_resp_code"));
-                retrialRequest.setString("posting_retrial_count", rs.getString("posting_retrial_count"));
+                JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+                jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
+                jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
+                jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
+                jsonBuilder.add("retrial_end_date", rs.getString("retrial_end_date") != null ? rs.getString("retrial_end_date") : "");
+                jsonBuilder.add("created_by", rs.getString("created_by") != null ? rs.getString("created_by") : "");
+                jsonBuilder.add("creation_date", rs.getString("creation_date") != null ? rs.getString("creation_date") : "");
+                jsonBuilder.add("batch_id", rs.getString("batch_id") != null ? rs.getString("batch_id") : "");
+                jsonBuilder.add("batch_count", rs.getString("batch_count") != null ? rs.getString("batch_count") : "");
+                jsonBuilder.add("status", rs.getString("status") != null ? rs.getString("status") : "");
+                jsonBuilder.add("approved_by", rs.getString("approved_by") != null ? rs.getString("approved_by") : "");
+                jsonBuilder.add("approval_date", rs.getString("approval_date") != null ? rs.getString("approval_date") : "");
+                jsonBuilder.add("posting_date", rs.getString("posting_date") != null ? rs.getString("posting_date") : "");
+                jsonBuilder.add("posting_resp_flg", rs.getString("posting_resp_flg") != null ? rs.getString("posting_resp_flg") : "");
+                jsonBuilder.add("posting_resp_code", rs.getString("posting_resp_code") != null ? rs.getString("posting_resp_code") : "");
+                jsonBuilder.add("posting_retrial_count", rs.getString("posting_retrial_count") != null ? rs.getString("posting_retrial_count") : "");
 
-                retrialRequests.add(retrialRequest);
+                jsonArrayBuilder.add(jsonBuilder.build());
             }
 
             success = true;
-            requestBean.setString("retrial_requests", JsonUtil.convertBaseBeanListToJsonString(retrialRequests));
+            requestBean.setString("retrial_requests", JsonUtil.toStr(jsonArrayBuilder.build()));
             requestBean.setString("total_rows", String.valueOf(totalRows));
             requestBean.setString("total_pages", String.valueOf(totalPages));
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
 
+            LOG.info("Successfully fetched {} retrial requests", totalRows);
+
+        } catch (SQLException e) {
+            LOG.error("SQL error in getFailedRetrialRequests: {}", e.getMessage(), e);
+            requestBean.setString("message", "Database error: " + e.getMessage());
         } catch (Exception e) {
-            requestBean.setString("message", e.getMessage());
-            LOG.error("Error fetching failed retrial requests", e);
+            LOG.error("Error in getFailedRetrialRequests: {}", e.getMessage(), e);
+            requestBean.setString("message", "Error processing request: " + e.getMessage());
         } finally {
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    LOG.error("Error closing PreparedStatement", e);
-                }
+            // Close resources in reverse order
+            try {
+                if (rs != null) rs.close();
+                if (countRs != null) countRs.close();
+                if (ps != null) ps.close();
+                if (countPs != null) countPs.close();
+                if (cnn != null) ConnectionUtil.closeConnection(cnn);
+            } catch (SQLException e) {
+                LOG.error("Error closing database resources", e);
             }
-            if (countPs != null) {
-                try {
-                    countPs.close();
-                } catch (SQLException e) {
-                    LOG.error("Error closing count PreparedStatement", e);
-                }
-            }
-            ConnectionUtil.closeConnection(cnn);
         }
 
         return success;
-    }
-
-    /**
-     * Formats date string for database usage with smart defaults
-     * @param dateStr The input date string from frontend
-     * @param isStartDate true for start date (adds 00:00:00), false for end date (adds 23:59:59)
-     * @return Formatted date string for database
-     */
-    private static String formatDateForDatabase(String dateStr, boolean isStartDate) {
-        if (dateStr == null || dateStr.trim().isEmpty()) {
-            return dateStr;
-        }
-
-        String trimmedDate = dateStr.trim();
-
-        // Check if date already contains time component (contains space and colon)
-        if (trimmedDate.contains(" ") && trimmedDate.contains(":")) {
-            // Date already has time component, return as-is
-            return trimmedDate;
-        }
-
-        // Check if it's just a date in YYYY-MM-DD format (10 characters)
-        if (trimmedDate.length() == 10 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            if (isStartDate) {
-                // For start date, add beginning of day
-                return trimmedDate + " 00:00:00";
-            } else {
-                // For end date, add end of day
-                return trimmedDate + " 23:59:59";
-            }
-        }
-
-        // Check if it's date with just time hours like "2024-01-01 10" (13 characters)
-        if (trimmedDate.length() == 13 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}")) {
-            if (isStartDate) {
-                return trimmedDate + ":00:00";
-            } else {
-                return trimmedDate + ":59:59";
-            }
-        }
-
-        // Check if it's date with hours and minutes like "2024-01-01 10:30" (16 characters)
-        if (trimmedDate.length() == 16 && trimmedDate.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}")) {
-            if (isStartDate) {
-                return trimmedDate + ":00";
-            } else {
-                return trimmedDate + ":59";
-            }
-        }
-
-        // For any other format, return as-is and let database handle validation
-        LOG.warn("Unexpected date format received: {}. Using as-is.", trimmedDate);
-        return trimmedDate;
     }
 }
