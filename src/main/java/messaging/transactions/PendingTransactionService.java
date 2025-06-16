@@ -13,10 +13,18 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class PendingTransactionService implements RequestExecutor {
 
     final static Logger LOG = LogManager.getLogger(PendingTransactionService.class);
+
+    // Define date formatters
+    private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final DateTimeFormatter OUTPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
     @Override
     public String execute(String request, String currentUser, String actionId) {
@@ -27,8 +35,17 @@ public class PendingTransactionService implements RequestExecutor {
             // Extract parameters from request
             if (jsonRequest != null) {
                 requestBean.setString("batch_id", JsonUtil.getJsonObjValue2(jsonRequest, "batch_id"));
-                requestBean.setString("start_date", JsonUtil.getJsonObjValue2(jsonRequest, "start_date"));
-                requestBean.setString("end_date", JsonUtil.getJsonObjValue2(jsonRequest, "end_date"));
+
+                // Format dates for Oracle compatibility
+                String startDate = JsonUtil.getJsonObjValue2(jsonRequest, "start_date");
+                String endDate = JsonUtil.getJsonObjValue2(jsonRequest, "end_date");
+
+                requestBean.setString("start_date", formatDateForOracle(startDate));
+                requestBean.setString("end_date", formatDateForOracle(endDate));
+
+                //requestBean.setString("start_date", JsonUtil.getJsonObjValue2(jsonRequest, "start_date"));
+                //requestBean.setString("end_date", JsonUtil.getJsonObjValue2(jsonRequest, "end_date"));
+
                 requestBean.setString("request_type", JsonUtil.getJsonObjValue2(jsonRequest, "request_type"));
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
@@ -39,13 +56,30 @@ public class PendingTransactionService implements RequestExecutor {
                 return createErrorResponse("400", "batch_id parameter is required");
             }
 
-            // Validate and log date parameters for debugging
+            // Validate date format
             if (!requestBean.getString("start_date").trim().isEmpty()) {
-                LOG.info("Start date parameter received: {}", requestBean.getString("start_date"));
+                String originalStartDate = JsonUtil.getJsonObjValue2(jsonRequest, "start_date");
+                if (!isValidDateFormat(originalStartDate)) {
+                    return createErrorResponse("400", "Invalid start_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                }
+                LOG.info("Formatted start date: {}", requestBean.getString("start_date"));
             }
+
             if (!requestBean.getString("end_date").trim().isEmpty()) {
-                LOG.info("End date parameter received: {}", requestBean.getString("end_date"));
+                String originalEndDate = JsonUtil.getJsonObjValue2(jsonRequest, "end_date");
+                if (!isValidDateFormat(originalEndDate)) {
+                    return createErrorResponse("400", "Invalid end_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                }
+                LOG.info("Formatted end date: {}", requestBean.getString("end_date"));
             }
+
+            // Validate and log date parameters for debugging
+//            if (!requestBean.getString("start_date").trim().isEmpty()) {
+//                LOG.info("Start date parameter received: {}", requestBean.getString("start_date"));
+//            }
+//            if (!requestBean.getString("end_date").trim().isEmpty()) {
+//                LOG.info("End date parameter received: {}", requestBean.getString("end_date"));
+//            }
 
             // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
@@ -87,6 +121,43 @@ public class PendingTransactionService implements RequestExecutor {
             );
 
             return createErrorResponse("500", "Internal server error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Format date string from ISO format to Oracle-compatible format
+     * @param dateStr Input date string in format: yyyy-MM-ddTHH:mm:ss
+     * @return Formatted date string in format: yyyy-MM-dd HH:mm:ss, or original string if empty/null
+     */
+    private String formatDateForOracle(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return dateStr;
+        }
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
+            return dateTime.format(OUTPUT_FORMATTER);
+        } catch (DateTimeParseException e) {
+            LOG.warn("Failed to parse date: {}. Using original value.", dateStr);
+            return dateStr; // Return original if parsing fails
+        }
+    }
+
+    /**
+     * Validate if the date string is in the expected format
+     * @param dateStr Date string to validate
+     * @return true if valid format, false otherwise
+     */
+    private boolean isValidDateFormat(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return true; // Empty dates are considered valid (optional)
+        }
+
+        try {
+            LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
         }
     }
 
