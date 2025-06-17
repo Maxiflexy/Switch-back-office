@@ -20,51 +20,71 @@ public class PendingTransactionServlet extends CustomBaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
-        String requestStr = null;
         PrintWriter out = null;
         try {
             out = servletResponse.getWriter();
             String respStr = null;
 
             String user = (String) servletRequest.getAttribute("username");
+            if (user == null || user.trim().isEmpty()) {
+                user = "system"; // Default user if not available
+            }
+
             String actionId = UUID.randomUUID().toString();
 
             JsonObjectBuilder builder = Json.createObjectBuilder();
 
-            // Extract query parameters
-            addObject(builder, "batch_id", servletRequest.getParameter("batch_id"));
-            addObject(builder, "start_date", servletRequest.getParameter("start_date"));
-            addObject(builder, "end_date", servletRequest.getParameter("end_date"));
-            addObject(builder, "request_type", servletRequest.getParameter("request_type"));
-            addObject(builder, "page", servletRequest.getParameter("page"));
-            addObject(builder, "size", servletRequest.getParameter("size"));
+            // Extract query parameters - handle null values gracefully
+            String batchId = servletRequest.getParameter("batch_id");
+            String startDate = servletRequest.getParameter("start_date");
+            String endDate = servletRequest.getParameter("end_date");
+            String requestType = servletRequest.getParameter("request_type");
+            String page = servletRequest.getParameter("page");
+            String size = servletRequest.getParameter("size");
 
+            LOG.info("Received request parameters - batch_id: {}, start_date: {}, end_date: {}, request_type: {}, page: {}, size: {}",
+                    batchId, startDate, endDate, requestType, page, size);
+
+            // Add parameters to JSON builder (addObject handles null values)
+            addObject(builder, "batch_id", batchId);
+            addObject(builder, "start_date", startDate);
+            addObject(builder, "end_date", endDate);
+            addObject(builder, "request_type", requestType);
+            addObject(builder, "page", page);
+            addObject(builder, "size", size);
+
+            // Set response headers
             servletResponse.setStatus(ResponseUtil.HTTP_OK_STATUS_1_INT);
             servletResponse.setContentType(APPLICATION_JSON);
             servletResponse.setCharacterEncoding(UTF_8);
-            setExecutor(new PendingTransactionService());
 
+            setExecutor(new PendingTransactionService());
             respStr = getExecutor().execute(builder.build().toString(), user, actionId);
+
+            LOG.info("Service execution completed for user: {}, actionId: {}", user, actionId);
             out.print(respStr);
 
         } catch (CustomException e) {
-            assert out != null;
-            servletResponse.setStatus(e.getStatusCode());
-            out.print(createDefaultResponse(e.getResponseCode(), e.getStatusCode(), e.getMessage()));
-            LOG.error(e.getMessage(), e);
+            LOG.error("Custom exception in PendingTransactionServlet: {}", e.getMessage(), e);
+            if (out != null) {
+                servletResponse.setStatus(e.getStatusCode());
+                out.print(createDefaultResponse(e.getResponseCode(), e.getStatusCode(), e.getMessage()));
+            }
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            LOG.error(e.getMessage(), e);
-        }
-        try {
-            assert out != null;
-            out.flush();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            LOG.error(e.getMessage(), e);
+            LOG.error("Unexpected error in PendingTransactionServlet: {}", e.getMessage(), e);
+            if (out != null) {
+                servletResponse.setStatus(500);
+                out.print("{\"status\":\"500\",\"message\":\"Internal server error: " + e.getMessage().replace("\"", "\\\"") + "\"}");
+            }
+        } finally {
+            if (out != null) {
+                try {
+                    out.flush();
+                } catch (Exception e) {
+                    LOG.error("Error flushing response", e);
+                }
+            }
         }
     }
 

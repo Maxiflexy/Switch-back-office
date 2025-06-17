@@ -30,48 +30,82 @@ public class PendingTransactionService implements RequestExecutor {
         JsonObject jsonRequest = JsonUtil.toJsonObject(request);
 
         try {
-            // Extract parameters from request (no date formatting - pass ISO dates directly to database)
+            // Extract parameters from request
             if (jsonRequest != null) {
                 requestBean.setString("batch_id", JsonUtil.getJsonObjValue2(jsonRequest, "batch_id"));
-
-                // Pass dates directly to database layer (ISO format)
                 requestBean.setString("start_date", JsonUtil.getJsonObjValue2(jsonRequest, "start_date"));
                 requestBean.setString("end_date", JsonUtil.getJsonObjValue2(jsonRequest, "end_date"));
-
                 requestBean.setString("request_type", JsonUtil.getJsonObjValue2(jsonRequest, "request_type"));
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
             }
 
             // Validate required parameters
-            if (requestBean.getString("batch_id").trim().isEmpty()) {
+            if (requestBean.getString("batch_id") == null || requestBean.getString("batch_id").trim().isEmpty()) {
                 return createErrorResponse("400", "batch_id parameter is required");
             }
 
-            // Validate date format (but don't format - let database handle conversion)
-            if (!requestBean.getString("start_date").trim().isEmpty()) {
-                String startDate = requestBean.getString("start_date");
+            // Validate batch_id format (must be a valid number for NUMBER(28,0) column)
+            try {
+                Long.parseLong(requestBean.getString("batch_id").trim());
+            } catch (NumberFormatException e) {
+                return createErrorResponse("400", "Invalid batch_id format. Must be a valid number.");
+            }
+
+            // Validate date format for start_date (optional)
+            if (requestBean.getString("start_date") != null && !requestBean.getString("start_date").trim().isEmpty()) {
+                String startDate = requestBean.getString("start_date").trim();
                 if (!isValidDateFormat(startDate)) {
-                    return createErrorResponse("400", "Invalid start_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                    return createErrorResponse("400", "Invalid start_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-16T07:38:25)");
                 }
                 LOG.info("Start date parameter validated: {}", startDate);
             }
 
-            if (!requestBean.getString("end_date").trim().isEmpty()) {
-                String endDate = requestBean.getString("end_date");
+            // Validate date format for end_date (optional)
+            if (requestBean.getString("end_date") != null && !requestBean.getString("end_date").trim().isEmpty()) {
+                String endDate = requestBean.getString("end_date").trim();
                 if (!isValidDateFormat(endDate)) {
-                    return createErrorResponse("400", "Invalid end_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                    return createErrorResponse("400", "Invalid end_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-17T07:38:25)");
                 }
                 LOG.info("End date parameter validated: {}", endDate);
+            }
+
+            // Validate pagination parameters
+            if (requestBean.getString("page") != null && !requestBean.getString("page").trim().isEmpty()) {
+                try {
+                    int page = Integer.parseInt(requestBean.getString("page").trim());
+                    if (page < 1) {
+                        return createErrorResponse("400", "page parameter must be greater than 0");
+                    }
+                } catch (NumberFormatException e) {
+                    return createErrorResponse("400", "Invalid page parameter. Must be a valid integer.");
+                }
+            }
+
+            if (requestBean.getString("size") != null && !requestBean.getString("size").trim().isEmpty()) {
+                try {
+                    int size = Integer.parseInt(requestBean.getString("size").trim());
+                    if (size < 1) {
+                        return createErrorResponse("400", "size parameter must be greater than 0");
+                    }
+                    if (size > 100) {
+                        return createErrorResponse("400", "size parameter cannot exceed 100");
+                    }
+                } catch (NumberFormatException e) {
+                    return createErrorResponse("400", "Invalid size parameter. Must be a valid integer.");
+                }
             }
 
             // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching pending transactions for batch_id: {}", requestBean.getString("batch_id"));
+            LOG.info("Fetching pending transactions for batch_id: {}, start_date: {}, end_date: {}, request_type: {}",
+                    requestBean.getString("batch_id"),
+                    requestBean.getString("start_date"),
+                    requestBean.getString("end_date"),
+                    requestBean.getString("request_type"));
 
-            // Call the database helper (database will handle TIMESTAMP conversion)
             boolean success = PendingTransactionDbHelper.getPendingTransactions(requestBean);
 
             if (success) {
@@ -79,8 +113,9 @@ public class PendingTransactionService implements RequestExecutor {
                 return createSuccessResponse(requestBean);
             } else {
                 // Create audit log for failed operation
-                String message = requestBean.getString("message").isEmpty() ?
-                        "Failed to fetch pending transactions" : requestBean.getString("message");
+                String message = (requestBean.getString("message") != null && !requestBean.getString("message").isEmpty()) ?
+                        requestBean.getString("message") : "Failed to fetch pending transactions";
+
                 MessageDbHelper.createMessageHelper(
                         "Pending Transaction Fetch Failed",
                         "Failed to fetch pending transactions: " + message,
@@ -122,14 +157,33 @@ public class PendingTransactionService implements RequestExecutor {
             LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
             return true;
         } catch (DateTimeParseException e) {
-            LOG.warn("Invalid date format: {}", dateStr);
+            LOG.warn("Invalid date format: {}. Expected format: yyyy-MM-ddTHH:mm:ss", dateStr);
             return false;
         }
     }
 
+    /**
+     * Create success response with properly formatted data
+     */
     private String createSuccessResponse(BaseBean requestBean) {
         try {
-            JsonArray dataArray = JsonUtil.toJsonArray(requestBean.getString("pending_transactions"));
+            String pendingTransactionsStr = requestBean.getString("pending_transactions");
+            if (pendingTransactionsStr == null || pendingTransactionsStr.trim().isEmpty()) {
+                // Handle empty result set
+                JsonObject response = Json.createObjectBuilder()
+                        .add("status", "00")
+                        .add("message", "Transactions fetched")
+                        .add("page", requestBean.getString("current_page") != null ? requestBean.getString("current_page") : "1")
+                        .add("size", requestBean.getString("page_size") != null ? requestBean.getString("page_size") : "10")
+                        .add("total_rows", requestBean.getString("total_rows") != null ? requestBean.getString("total_rows") : "0")
+                        .add("total_pages", requestBean.getString("total_pages") != null ? requestBean.getString("total_pages") : "0")
+                        .add("data", Json.createArrayBuilder().build())
+                        .build();
+
+                return JsonUtil.toStr(response);
+            }
+
+            JsonArray dataArray = JsonUtil.toJsonArray(pendingTransactionsStr);
             JsonArrayBuilder responseDataBuilder = Json.createArrayBuilder();
 
             // Transform data to match required response format
@@ -151,27 +205,32 @@ public class PendingTransactionService implements RequestExecutor {
             JsonObject response = Json.createObjectBuilder()
                     .add("status", "00")
                     .add("message", "Transactions fetched")
-                    .add("page", requestBean.getString("current_page"))
-                    .add("size", requestBean.getString("page_size"))
-                    .add("total_rows", requestBean.getString("total_rows"))
-                    .add("total_pages", requestBean.getString("total_pages"))
+                    .add("page", requestBean.getString("current_page") != null ? requestBean.getString("current_page") : "1")
+                    .add("size", requestBean.getString("page_size") != null ? requestBean.getString("page_size") : "10")
+                    .add("total_rows", requestBean.getString("total_rows") != null ? requestBean.getString("total_rows") : "0")
+                    .add("total_pages", requestBean.getString("total_pages") != null ? requestBean.getString("total_pages") : "0")
                     .add("data", responseDataBuilder.build())
                     .build();
 
+            LOG.info("Successfully created response with {} transactions", dataArray.size());
             return JsonUtil.toStr(response);
 
         } catch (Exception e) {
             LOG.error("Error creating success response", e);
-            return createErrorResponse("500", "Error formatting response");
+            return createErrorResponse("500", "Error formatting response: " + e.getMessage());
         }
     }
 
+    /**
+     * Create standardized error response
+     */
     private String createErrorResponse(String statusCode, String message) {
         JsonObject response = Json.createObjectBuilder()
                 .add("status", statusCode)
                 .add("message", message)
                 .build();
 
+        LOG.warn("Returning error response - Status: {}, Message: {}", statusCode, message);
         return JsonUtil.toStr(response);
     }
 }

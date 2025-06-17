@@ -28,39 +28,57 @@ public class PendingTransactionDbHelper {
         queryBuilder.append("n.C24_RSP_CODE, COALESCE(b.ERR_DESC, '') as ERR_DESC ");
         queryBuilder.append("FROM ESBUSER.NIP_IN_FLW_V2 n ");
         queryBuilder.append("LEFT JOIN ESBUSER.BANCS_CONNECT_RESPONSE b ON n.C24_RSP_CODE = b.ERR_CODE ");
-        queryBuilder.append("WHERE n.BATCH_ID = ?");
+        queryBuilder.append("WHERE 1=1");
 
         StringBuilder countQueryBuilder = new StringBuilder();
         countQueryBuilder.append("SELECT COUNT(*) as total_count FROM ESBUSER.NIP_IN_FLW_V2 n ");
-        countQueryBuilder.append("WHERE n.BATCH_ID = ?");
+        countQueryBuilder.append("WHERE 1=1");
 
         List<Object> parameters = new ArrayList<>();
 
-        // BATCH_ID is NUMBER(28,0) in database, so convert string to Long for proper parameter binding
-        try {
-            parameters.add(Long.parseLong(requestBean.getString("batch_id")));
-        } catch (NumberFormatException e) {
-            LOG.error("Invalid batch_id format: {}", requestBean.getString("batch_id"));
-            requestBean.setString("message", "Invalid batch_id format. Must be a valid number.");
+        // BATCH_ID is required - NUMBER(28,0) in database
+        if (requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty()) {
+            queryBuilder.append(" AND n.BATCH_ID = ?");
+            countQueryBuilder.append(" AND n.BATCH_ID = ?");
+
+            try {
+                Long batchId = Long.parseLong(requestBean.getString("batch_id").trim());
+                parameters.add(batchId);
+                LOG.info("Adding batch_id filter: {}", batchId);
+            } catch (NumberFormatException e) {
+                LOG.error("Invalid batch_id format: {}", requestBean.getString("batch_id"));
+                requestBean.setString("message", "Invalid batch_id format. Must be a valid number.");
+                return false;
+            }
+        } else {
+            LOG.error("batch_id parameter is required but not provided");
+            requestBean.setString("message", "batch_id parameter is required");
             return false;
         }
 
-        // Handle TIMESTAMP date range filters with ISO format
-        if (requestBean.containsKey("start_date") && !requestBean.getString("start_date").isEmpty()) {
-            queryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            parameters.add(requestBean.getString("start_date"));
-            LOG.info("Adding start date filter: {}", requestBean.getString("start_date"));
+        // Handle DATE range filters - REQUESTDATE is DATE type, convert ISO format to DATE
+        boolean hasStartDate = requestBean.containsKey("start_date") &&
+                !requestBean.getString("start_date").trim().isEmpty();
+        boolean hasEndDate = requestBean.containsKey("end_date") &&
+                !requestBean.getString("end_date").trim().isEmpty();
+
+        if (hasStartDate) {
+            // Convert ISO format (2025-06-16T07:38:25) to DATE for Oracle
+            queryBuilder.append(" AND n.REQUESTDATE >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.REQUESTDATE >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("start_date").trim());
+            LOG.info("Adding start_date filter: {}", requestBean.getString("start_date"));
         }
 
-        if (requestBean.containsKey("end_date") && !requestBean.getString("end_date").isEmpty()) {
-            queryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            parameters.add(requestBean.getString("end_date"));
-            LOG.info("Adding end date filter: {}", requestBean.getString("end_date"));
+        if (hasEndDate) {
+            // Convert ISO format (2025-06-16T07:38:25) to DATE for Oracle
+            queryBuilder.append(" AND n.REQUESTDATE <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.REQUESTDATE <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("end_date").trim());
+            LOG.info("Adding end_date filter: {}", requestBean.getString("end_date"));
         }
 
-        // Add sorting
+        // Add sorting by REQUESTDATE in descending order
         queryBuilder.append(" ORDER BY n.REQUESTDATE DESC");
 
         // Add pagination
@@ -68,14 +86,18 @@ public class PendingTransactionDbHelper {
         int size = 10;
 
         try {
-            if (requestBean.containsKey("page") && !requestBean.getString("page").isEmpty()) {
-                page = Integer.parseInt(requestBean.getString("page"));
+            if (requestBean.containsKey("page") && !requestBean.getString("page").trim().isEmpty()) {
+                page = Integer.parseInt(requestBean.getString("page").trim());
+                if (page < 1) page = 1; // Ensure minimum page is 1
             }
-            if (requestBean.containsKey("size") && !requestBean.getString("size").isEmpty()) {
-                size = Integer.parseInt(requestBean.getString("size"));
+            if (requestBean.containsKey("size") && !requestBean.getString("size").trim().isEmpty()) {
+                size = Integer.parseInt(requestBean.getString("size").trim());
+                if (size < 1) size = 10; // Ensure minimum size is 1
+                if (size > 100) size = 100; // Cap maximum size
             }
         } catch (NumberFormatException e) {
-            LOG.warn("Invalid page or size parameter, using defaults");
+            LOG.warn("Invalid page or size parameter, using defaults. Page: {}, Size: {}",
+                    requestBean.getString("page"), requestBean.getString("size"));
         }
 
         int offset = (page - 1) * size;
@@ -93,6 +115,7 @@ public class PendingTransactionDbHelper {
 
         LOG.info("Executing query: {}", query);
         LOG.info("Parameters: {}", parameters);
+        LOG.info("Pagination - Page: {}, Size: {}, Offset: {}", page, size, offset);
 
         try {
             cnn = ConnectionUtil.getConnection();
@@ -112,6 +135,7 @@ public class PendingTransactionDbHelper {
                 } else {
                     countPs.setObject(paramIndex++, param);
                 }
+                LOG.debug("Count query parameter {}: {}", paramIndex-1, param);
             }
 
             countRs = countPs.executeQuery();
@@ -121,7 +145,7 @@ public class PendingTransactionDbHelper {
             LOG.info("Total rows found: {}", totalRows);
 
             // Calculate total pages
-            int totalPages = (int) Math.ceil((double) totalRows / size);
+            int totalPages = totalRows > 0 ? (int) Math.ceil((double) totalRows / size) : 0;
 
             // Now get the actual data
             ps = cnn.prepareStatement(query);
@@ -132,20 +156,32 @@ public class PendingTransactionDbHelper {
                 } else {
                     ps.setObject(paramIndex++, param);
                 }
+                LOG.debug("Data query parameter {}: {}", paramIndex-1, param);
             }
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex, size);
 
             rs = ps.executeQuery();
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+            int rowCount = 0;
 
             while (rs.next()) {
+                rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+
+                // Map database columns to response fields with null safety
                 jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
                 jsonBuilder.add("tran_date", rs.getString("REQUESTDATE") != null ? rs.getString("REQUESTDATE") : "");
                 jsonBuilder.add("acct_no", rs.getString("ACCOUNTNUMBER") != null ? rs.getString("ACCOUNTNUMBER") : "");
-                jsonBuilder.add("tran_amt", rs.getString("AMOUNT") != null ? rs.getString("AMOUNT") : "");
-                jsonBuilder.add("batch_id", rs.getString("BATCH_ID") != null ? rs.getString("BATCH_ID") : "");
+
+                // Handle AMOUNT as string to preserve precision
+                String amount = rs.getString("AMOUNT");
+                jsonBuilder.add("tran_amt", amount != null ? amount : "");
+
+                // Handle BATCH_ID as string
+                String batchId = rs.getString("BATCH_ID");
+                jsonBuilder.add("batch_id", batchId != null ? batchId : "");
+
                 jsonBuilder.add("tran_narration", rs.getString("NARRATION") != null ? rs.getString("NARRATION") : "");
                 jsonBuilder.add("response_code", rs.getString("C24_RSP_CODE") != null ? rs.getString("C24_RSP_CODE") : "");
                 jsonBuilder.add("response_desc", rs.getString("ERR_DESC") != null ? rs.getString("ERR_DESC") : "");
@@ -160,7 +196,7 @@ public class PendingTransactionDbHelper {
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
 
-            LOG.info("Successfully fetched {} pending transactions", totalRows);
+            LOG.info("Successfully fetched {} pending transactions out of {} total rows", rowCount, totalRows);
 
         } catch (SQLException e) {
             LOG.error("SQL error in getPendingTransactions: {}", e.getMessage(), e);
