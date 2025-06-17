@@ -30,7 +30,7 @@ public class FailedRetrialService implements RequestExecutor {
         JsonObject jsonRequest = JsonUtil.toJsonObject(request);
 
         try {
-            // Extract parameters from request (no date formatting - pass ISO dates directly to database)
+            // Extract parameters from request
             if (jsonRequest != null) {
                 requestBean.setString("service_type", JsonUtil.getJsonObjValue2(jsonRequest, "service_type"));
                 requestBean.setString("request_status", JsonUtil.getJsonObjValue2(jsonRequest, "request_status"));
@@ -44,43 +44,78 @@ public class FailedRetrialService implements RequestExecutor {
             }
 
             // Validate required parameters
-            if (requestBean.getString("service_type").trim().isEmpty()) {
+            if (requestBean.getString("service_type") == null || requestBean.getString("service_type").trim().isEmpty()) {
                 return createErrorResponse("400", "service_type parameter is required");
             }
 
-            if (requestBean.getString("request_status").trim().isEmpty()) {
+            if (requestBean.getString("request_status") == null || requestBean.getString("request_status").trim().isEmpty()) {
                 return createErrorResponse("400", "request_status parameter is required");
             }
 
-            // Validate request_status values
+            // Validate request_status values (case-insensitive)
             String requestStatus = requestBean.getString("request_status").trim().toLowerCase();
             if (!requestStatus.equals("approved") && !requestStatus.equals("pending") && !requestStatus.equals("rejected")) {
                 return createErrorResponse("400", "request_status must be one of: approved, pending, rejected");
             }
 
-            // Validate date format (but don't format - let database handle conversion)
-            if (!requestBean.getString("retrial_start_date").trim().isEmpty()) {
-                String startDate = requestBean.getString("retrial_start_date");
+            // Validate service_type values (optional validation - you can expand this)
+            String serviceType = requestBean.getString("service_type").trim().toUpperCase();
+            if (!serviceType.equals("POSTING") && !serviceType.equals("TSQ")) {
+                LOG.warn("Unexpected service_type value: {}. Proceeding with query anyway.", serviceType);
+            }
+
+            // Validate date format
+            if (requestBean.getString("retrial_start_date") != null && !requestBean.getString("retrial_start_date").trim().isEmpty()) {
+                String startDate = requestBean.getString("retrial_start_date").trim();
                 if (!isValidDateFormat(startDate)) {
-                    return createErrorResponse("400", "Invalid retrial_start_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                    return createErrorResponse("400", "Invalid retrial_start_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-16T07:38:25)");
                 }
                 LOG.info("Start date parameter validated: {}", startDate);
             }
 
-            if (!requestBean.getString("retrial_end_date").trim().isEmpty()) {
-                String endDate = requestBean.getString("retrial_end_date");
+            if (requestBean.getString("retrial_end_date") != null && !requestBean.getString("retrial_end_date").trim().isEmpty()) {
+                String endDate = requestBean.getString("retrial_end_date").trim();
                 if (!isValidDateFormat(endDate)) {
-                    return createErrorResponse("400", "Invalid retrial_end_date format. Expected: yyyy-MM-ddTHH:mm:ss");
+                    return createErrorResponse("400", "Invalid retrial_end_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-17T07:38:25)");
                 }
                 LOG.info("End date parameter validated: {}", endDate);
+            }
+
+            // Validate pagination parameters
+            if (requestBean.getString("page") != null && !requestBean.getString("page").trim().isEmpty()) {
+                try {
+                    int page = Integer.parseInt(requestBean.getString("page").trim());
+                    if (page < 1) {
+                        return createErrorResponse("400", "page parameter must be greater than 0");
+                    }
+                } catch (NumberFormatException e) {
+                    return createErrorResponse("400", "Invalid page parameter. Must be a valid integer.");
+                }
+            }
+
+            if (requestBean.getString("size") != null && !requestBean.getString("size").trim().isEmpty()) {
+                try {
+                    int size = Integer.parseInt(requestBean.getString("size").trim());
+                    if (size < 1) {
+                        return createErrorResponse("400", "size parameter must be greater than 0");
+                    }
+                    if (size > 100) {
+                        return createErrorResponse("400", "size parameter cannot exceed 100");
+                    }
+                } catch (NumberFormatException e) {
+                    return createErrorResponse("400", "Invalid size parameter. Must be a valid integer.");
+                }
             }
 
             // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching failed retrial requests for service_type: {} and status: {}",
-                    requestBean.getString("service_type"), requestBean.getString("request_status"));
+            LOG.info("Fetching failed retrial requests for service_type: {}, status: {}, start_date: {}, end_date: {}",
+                    requestBean.getString("service_type"),
+                    requestBean.getString("request_status"),
+                    requestBean.getString("retrial_start_date"),
+                    requestBean.getString("retrial_end_date"));
 
             // Call the database helper (database will handle TIMESTAMP conversion)
             boolean success = PostingRetrialDbHelper.getFailedRetrialRequests(requestBean);
@@ -90,8 +125,9 @@ public class FailedRetrialService implements RequestExecutor {
                 return createSuccessResponse(requestBean);
             } else {
                 // Create audit log for failed operation
-                String message = requestBean.getString("message").isEmpty() ?
-                        "Failed to fetch retrial requests" : requestBean.getString("message");
+                String message = (requestBean.getString("message") != null && !requestBean.getString("message").isEmpty()) ?
+                        requestBean.getString("message") : "Failed to fetch retrial requests";
+
                 MessageDbHelper.createMessageHelper(
                         "Failed Retrial Request Fetch Failed",
                         "Failed to fetch failed retrial requests: " + message,
@@ -133,14 +169,33 @@ public class FailedRetrialService implements RequestExecutor {
             LocalDateTime.parse(dateStr.trim(), INPUT_FORMATTER);
             return true;
         } catch (DateTimeParseException e) {
-            LOG.warn("Invalid date format: {}", dateStr);
+            LOG.warn("Invalid date format: {}. Expected format: yyyy-MM-ddTHH:mm:ss", dateStr);
             return false;
         }
     }
 
+    /**
+     * Create success response with properly formatted data
+     */
     private String createSuccessResponse(BaseBean requestBean) {
         try {
-            JsonArray dataArray = JsonUtil.toJsonArray(requestBean.getString("retrial_requests"));
+            String retrialRequestsStr = requestBean.getString("retrial_requests");
+            if (retrialRequestsStr == null || retrialRequestsStr.trim().isEmpty()) {
+                // Handle empty result set
+                JsonObject response = Json.createObjectBuilder()
+                        .add("status", "00")
+                        .add("message", "Success")
+                        .add("page", requestBean.getString("current_page") != null ? requestBean.getString("current_page") : "1")
+                        .add("size", requestBean.getString("page_size") != null ? requestBean.getString("page_size") : "10")
+                        .add("total_rows", requestBean.getString("total_rows") != null ? requestBean.getString("total_rows") : "0")
+                        .add("total_pages", requestBean.getString("total_pages") != null ? requestBean.getString("total_pages") : "0")
+                        .add("data", Json.createArrayBuilder().build())
+                        .build();
+
+                return JsonUtil.toStr(response);
+            }
+
+            JsonArray dataArray = JsonUtil.toJsonArray(retrialRequestsStr);
             JsonArrayBuilder responseDataBuilder = Json.createArrayBuilder();
 
             // Transform data to match required response format
@@ -161,6 +216,7 @@ public class FailedRetrialService implements RequestExecutor {
                         .add("posting_resp_flg", JsonUtil.getJsonObjValue2(item, "posting_resp_flg"))
                         .add("posting_resp_code", JsonUtil.getJsonObjValue2(item, "posting_resp_code"))
                         .add("posting_retrial_count", JsonUtil.getJsonObjValue2(item, "posting_retrial_count"))
+                        .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
                         .build();
                 responseDataBuilder.add(responseItem);
             }
@@ -168,27 +224,32 @@ public class FailedRetrialService implements RequestExecutor {
             JsonObject response = Json.createObjectBuilder()
                     .add("status", "00")
                     .add("message", "Success")
-                    .add("page", requestBean.getString("current_page"))
-                    .add("size", requestBean.getString("page_size"))
-                    .add("total_rows", requestBean.getString("total_rows"))
-                    .add("total_pages", requestBean.getString("total_pages"))
+                    .add("page", requestBean.getString("current_page") != null ? requestBean.getString("current_page") : "1")
+                    .add("size", requestBean.getString("page_size") != null ? requestBean.getString("page_size") : "10")
+                    .add("total_rows", requestBean.getString("total_rows") != null ? requestBean.getString("total_rows") : "0")
+                    .add("total_pages", requestBean.getString("total_pages") != null ? requestBean.getString("total_pages") : "0")
                     .add("data", responseDataBuilder.build())
                     .build();
 
+            LOG.info("Successfully created response with {} records", dataArray.size());
             return JsonUtil.toStr(response);
 
         } catch (Exception e) {
             LOG.error("Error creating success response", e);
-            return createErrorResponse("500", "Error formatting response");
+            return createErrorResponse("500", "Error formatting response: " + e.getMessage());
         }
     }
 
+    /**
+     * Create standardized error response
+     */
     private String createErrorResponse(String statusCode, String message) {
         JsonObject response = Json.createObjectBuilder()
                 .add("status", statusCode)
                 .add("message", message)
                 .build();
 
+        LOG.warn("Returning error response - Status: {}, Message: {}", statusCode, message);
         return JsonUtil.toStr(response);
     }
 }

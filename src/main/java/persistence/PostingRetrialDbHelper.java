@@ -37,36 +37,44 @@ public class PostingRetrialDbHelper {
 
         List<Object> parameters = new ArrayList<>();
 
-        // Add service_type filter
-        if (requestBean.containsKey("service_type") && !requestBean.getString("service_type").isEmpty()) {
-            queryBuilder.append(" AND service_type = ?");
-            countQueryBuilder.append(" AND service_type = ?");
-            parameters.add(requestBean.getString("service_type"));
+        // Add service_type filter (required) - can be POSTING or TSQ,
+        if (requestBean.containsKey("service_type") && !requestBean.getString("service_type").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(service_type) = UPPER(?)");
+            countQueryBuilder.append(" AND UPPER(service_type) = UPPER(?)");
+            parameters.add(requestBean.getString("service_type").trim());
+            LOG.info("Adding service_type filter: {}", requestBean.getString("service_type"));
         }
 
-        // Add status filter
-        if (requestBean.containsKey("request_status") && !requestBean.getString("request_status").isEmpty()) {
-            queryBuilder.append(" AND status = ?");
-            countQueryBuilder.append(" AND status = ?");
-            parameters.add(requestBean.getString("request_status"));
+        // Add status filter (required) - status values are PENDING, APPROVED, REJECTED
+        if (requestBean.containsKey("request_status") && !requestBean.getString("request_status").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(status) = UPPER(?)");
+            countQueryBuilder.append(" AND UPPER(status) = UPPER(?)");
+            parameters.add(requestBean.getString("request_status").trim());
+            LOG.info("Adding request_status filter: {}", requestBean.getString("request_status"));
         }
 
-        // Handle TIMESTAMP date range filters with ISO format
-        if (requestBean.containsKey("retrial_start_date") && !requestBean.getString("retrial_start_date").isEmpty()) {
-            queryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            parameters.add(requestBean.getString("retrial_start_date"));
-            LOG.info("Adding start date filter: {}", requestBean.getString("retrial_start_date"));
+        // Handle date range filters - filter on actual retrial date columns
+        // Only add date filters if dates are provided and not empty
+        boolean hasStartDate = requestBean.containsKey("retrial_start_date") &&
+                !requestBean.getString("retrial_start_date").trim().isEmpty();
+        boolean hasEndDate = requestBean.containsKey("retrial_end_date") &&
+                !requestBean.getString("retrial_end_date").trim().isEmpty();
+
+        if (hasStartDate) {
+            queryBuilder.append(" AND retrial_start_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND retrial_start_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("retrial_start_date").trim());
+            LOG.info("Adding retrial_start_date filter: {}", requestBean.getString("retrial_start_date"));
         }
 
-        if (requestBean.containsKey("retrial_end_date") && !requestBean.getString("retrial_end_date").isEmpty()) {
-            queryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            parameters.add(requestBean.getString("retrial_end_date"));
-            LOG.info("Adding end date filter: {}", requestBean.getString("retrial_end_date"));
+        if (hasEndDate) {
+            queryBuilder.append(" AND retrial_end_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND retrial_end_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            parameters.add(requestBean.getString("retrial_end_date").trim());
+            LOG.info("Adding retrial_end_date filter: {}", requestBean.getString("retrial_end_date"));
         }
 
-        // Add sorting
+        // Add sorting by creation_date in descending order
         queryBuilder.append(" ORDER BY creation_date DESC");
 
         // Add pagination
@@ -74,14 +82,18 @@ public class PostingRetrialDbHelper {
         int size = 10;
 
         try {
-            if (requestBean.containsKey("page") && !requestBean.getString("page").isEmpty()) {
-                page = Integer.parseInt(requestBean.getString("page"));
+            if (requestBean.containsKey("page") && !requestBean.getString("page").trim().isEmpty()) {
+                page = Integer.parseInt(requestBean.getString("page").trim());
+                if (page < 1) page = 1; // Ensure minimum page is 1
             }
-            if (requestBean.containsKey("size") && !requestBean.getString("size").isEmpty()) {
-                size = Integer.parseInt(requestBean.getString("size"));
+            if (requestBean.containsKey("size") && !requestBean.getString("size").trim().isEmpty()) {
+                size = Integer.parseInt(requestBean.getString("size").trim());
+                if (size < 1) size = 10; // Ensure minimum size is 1
+                if (size > 100) size = 100; // Cap maximum size
             }
         } catch (NumberFormatException e) {
-            LOG.warn("Invalid page or size parameter, using defaults");
+            LOG.warn("Invalid page or size parameter, using defaults. Page: {}, Size: {}",
+                    requestBean.getString("page"), requestBean.getString("size"));
         }
 
         int offset = (page - 1) * size;
@@ -99,6 +111,7 @@ public class PostingRetrialDbHelper {
 
         LOG.info("Executing query: {}", query);
         LOG.info("Parameters: {}", parameters);
+        LOG.info("Pagination - Page: {}, Size: {}, Offset: {}", page, size, offset);
 
         try {
             cnn = ConnectionUtil.getConnection();
@@ -114,6 +127,7 @@ public class PostingRetrialDbHelper {
             int paramIndex = 1;
             for (Object param : parameters) {
                 countPs.setObject(paramIndex++, param);
+                LOG.debug("Count query parameter {}: {}", paramIndex-1, param);
             }
 
             countRs = countPs.executeQuery();
@@ -123,22 +137,27 @@ public class PostingRetrialDbHelper {
             LOG.info("Total rows found: {}", totalRows);
 
             // Calculate total pages
-            int totalPages = (int) Math.ceil((double) totalRows / size);
+            int totalPages = totalRows > 0 ? (int) Math.ceil((double) totalRows / size) : 0;
 
             // Now get the actual data
             ps = cnn.prepareStatement(query);
             paramIndex = 1;
             for (Object param : parameters) {
                 ps.setObject(paramIndex++, param);
+                LOG.debug("Data query parameter {}: {}", paramIndex-1, param);
             }
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex, size);
 
             rs = ps.executeQuery();
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+            int rowCount = 0;
 
             while (rs.next()) {
+                rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+
+                // Handle all columns with null safety
                 jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
                 jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
                 jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
@@ -165,7 +184,7 @@ public class PostingRetrialDbHelper {
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
 
-            LOG.info("Successfully fetched {} retrial requests", totalRows);
+            LOG.info("Successfully fetched {} retrial requests out of {} total rows", rowCount, totalRows);
 
         } catch (SQLException e) {
             LOG.error("SQL error in getFailedRetrialRequests: {}", e.getMessage(), e);

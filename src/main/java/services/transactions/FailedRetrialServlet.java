@@ -31,13 +31,32 @@ public class FailedRetrialServlet extends CustomBaseServlet {
 
             JsonObjectBuilder builder = Json.createObjectBuilder();
 
+            // Extract query parameters - handle null values gracefully
+            String serviceType = servletRequest.getParameter("service_type");
+            String requestStatus = servletRequest.getParameter("request_status");
+            String retrialStartDate = servletRequest.getParameter("retrial_start_date");
+            String retrialEndDate = servletRequest.getParameter("retrial_end_date");
+            String page = servletRequest.getParameter("page");
+            String size = servletRequest.getParameter("size");
+
+            LOG.info("Received request parameters - service_type: {}, request_status: {}, retrial_start_date: {}, retrial_end_date: {}, page: {}, size: {}",
+                    serviceType, requestStatus, retrialStartDate, retrialEndDate, page, size);
+
+            // Add parameters to JSON builder (addObject handles null values)
+            addObject(builder, "service_type", serviceType);
+            addObject(builder, "request_status", requestStatus);
+            addObject(builder, "retrial_start_date", retrialStartDate);
+            addObject(builder, "retrial_end_date", retrialEndDate);
+            addObject(builder, "page", page);
+            addObject(builder, "size", size);
+
             // Extract query parameters
-            addObject(builder, "service_type", servletRequest.getParameter("service_type"));
-            addObject(builder, "request_status", servletRequest.getParameter("request_status"));
-            addObject(builder, "retrial_start_date", servletRequest.getParameter("retrial_start_date"));
-            addObject(builder, "retrial_end_date", servletRequest.getParameter("retrial_end_date"));
-            addObject(builder, "page", servletRequest.getParameter("page"));
-            addObject(builder, "size", servletRequest.getParameter("size"));
+//            addObject(builder, "service_type", servletRequest.getParameter("service_type"));
+//            addObject(builder, "request_status", servletRequest.getParameter("request_status"));
+//            addObject(builder, "retrial_start_date", servletRequest.getParameter("retrial_start_date"));
+//            addObject(builder, "retrial_end_date", servletRequest.getParameter("retrial_end_date"));
+//            addObject(builder, "page", servletRequest.getParameter("page"));
+//            addObject(builder, "size", servletRequest.getParameter("size"));
 
             servletResponse.setStatus(ResponseUtil.HTTP_OK_STATUS_1_INT);
             servletResponse.setContentType(APPLICATION_JSON);
