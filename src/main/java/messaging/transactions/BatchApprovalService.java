@@ -11,6 +11,7 @@ import util.JsonUtil;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -56,7 +57,7 @@ public class BatchApprovalService implements RequestExecutor {
 
             // Validate batch_id format (assuming it should be alphanumeric)
             String batchId = requestBean.getString("batch_id").trim();
-            if (batchId.length() > 28) {
+            if (batchId.length() > 24) {
                 return createErrorResponse("400", "batch_id exceeds maximum length of 24 characters");
             }
 
@@ -92,13 +93,13 @@ public class BatchApprovalService implements RequestExecutor {
                     requestBean.getString("batch_id"), e);
 
             // Create audit log for exception
-            MessageDbHelper.createMessageHelper(
-                    "Batch Approval Error",
-                    "Error occurred during batch approval: " + e.getMessage(),
-                    currentUser,
-                    AppModules.TRANSACTION_MANAGEMENT,
-                    currentUser
-            );
+//            MessageDbHelper.createMessageHelper(
+//                    "Batch Approval Error",
+//                    "Error occurred during batch approval: " + e.getMessage(),
+//                    currentUser,
+//                    AppModules.TRANSACTION_MANAGEMENT,
+//                    currentUser
+//            );
 
             return createErrorResponse("500", "Internal server error: " + e.getMessage());
         }
@@ -117,13 +118,13 @@ public class BatchApprovalService implements RequestExecutor {
                         requestBean.getString("message") : "Failed to approve batch";
 
                 // Create audit log for failed approval
-                MessageDbHelper.createMessageHelper(
-                        "Batch Approval Failed",
-                        "Failed to approve batch " + requestBean.getString("batch_id") + ": " + message,
-                        currentUser,
-                        AppModules.TRANSACTION_MANAGEMENT,
-                        currentUser
-                );
+//                MessageDbHelper.createMessageHelper(
+//                        "Batch Approval Failed",
+//                        "Failed to approve batch " + requestBean.getString("batch_id") + ": " + message,
+//                        currentUser,
+//                        AppModules.TRANSACTION_MANAGEMENT,
+//                        currentUser
+//                );
 
                 return createErrorResponse("500", message);
             }
@@ -136,13 +137,13 @@ public class BatchApprovalService implements RequestExecutor {
                 LOG.error("External API call failed for batch: {}", requestBean.getString("batch_id"));
 
                 // Create audit log for external API failure
-                MessageDbHelper.createMessageHelper(
-                        "External API Call Failed",
-                        "External service call failed for approved batch " + requestBean.getString("batch_id"),
-                        currentUser,
-                        AppModules.TRANSACTION_MANAGEMENT,
-                        currentUser
-                );
+//                MessageDbHelper.createMessageHelper(
+//                        "External API Call Failed",
+//                        "External service call failed for approved batch " + requestBean.getString("batch_id"),
+//                        currentUser,
+//                        AppModules.TRANSACTION_MANAGEMENT,
+//                        currentUser
+//                );
 
                 return createErrorResponse("500", "error posting to esb service");
             }
@@ -178,13 +179,13 @@ public class BatchApprovalService implements RequestExecutor {
                         requestBean.getString("message") : "Failed to reject batch";
 
                 // Create audit log for failed rejection
-                MessageDbHelper.createMessageHelper(
-                        "Batch Rejection Failed",
-                        "Failed to reject batch " + requestBean.getString("batch_id") + ": " + message,
-                        currentUser,
-                        AppModules.TRANSACTION_MANAGEMENT,
-                        currentUser
-                );
+//                MessageDbHelper.createMessageHelper(
+//                        "Batch Rejection Failed",
+//                        "Failed to reject batch " + requestBean.getString("batch_id") + ": " + message,
+//                        currentUser,
+//                        AppModules.TRANSACTION_MANAGEMENT,
+//                        currentUser
+//                );
 
                 return createErrorResponse("500", message);
             }

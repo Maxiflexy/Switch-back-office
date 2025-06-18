@@ -14,17 +14,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static util.JsonUtil.addObject;
 import static util.JsonUtil.toJsonObject;
 import static util.ResponseUtil.createDefaultResponse;
 
 public class BatchApprovalServlet extends CustomBaseServlet {
-
-    // Pattern to extract batch_id from URL path like /transactions/approve/123456
-    private static final Pattern BATCH_ID_PATTERN = Pattern.compile(".*/approve/([^/]+)$");
 
     @Override
     protected void doPost(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
@@ -35,21 +30,10 @@ public class BatchApprovalServlet extends CustomBaseServlet {
 
             String user = (String) servletRequest.getAttribute("username");
             if (user == null || user.trim().isEmpty()) {
-                user = "system";
+                user = "system"; // Default user if not available
             }
 
             String actionId = UUID.randomUUID().toString();
-
-            // Extract batch_id from URL path
-            String batchId = extractBatchIdFromPath(servletRequest.getRequestURI());
-            if (batchId == null || batchId.trim().isEmpty()) {
-                LOG.error("batch_id not found in URL path: {}", servletRequest.getRequestURI());
-                servletResponse.setStatus(400);
-                out.print("{\"status\":\"400\",\"message\":\"Invalid URL path. Expected format: /transactions/approve/{batch_id}\"}");
-                return;
-            }
-
-            LOG.info("Extracted batch_id from path: {}", batchId);
 
             // Read request body
             StringBuilder requestBody = new StringBuilder();
@@ -73,40 +57,66 @@ public class BatchApprovalServlet extends CustomBaseServlet {
             }
 
             // Validate required fields in request body
-            if (!requestJson.containsKey("status") || !requestJson.containsKey("message")) {
-                LOG.error("Missing required fields in request body. Expected: status, message");
+            if (!requestJson.containsKey("batch_id") || !requestJson.containsKey("status") || !requestJson.containsKey("message")) {
+                LOG.error("Missing required fields in request body. Expected: batch_id, status, message");
                 servletResponse.setStatus(400);
-                out.print("{\"status\":\"400\",\"message\":\"Missing required fields: status and message\"}");
+                out.print("{\"status\":\"400\",\"message\":\"Missing required fields: batch_id, status and message\"}");
                 return;
             }
 
-            // Create combined request object with path variable and body data
-            JsonObjectBuilder combinedBuilder = Json.createObjectBuilder();
-            addObject(combinedBuilder, "batch_id", batchId);
-            addObject(combinedBuilder, "status", requestJson.getString("status", ""));
-            addObject(combinedBuilder, "message", requestJson.getString("message", ""));
+            // Extract fields from request body
+            String batchId = requestJson.getString("batch_id", "").trim();
+            String status = requestJson.getString("status", "").trim();
+            String message = requestJson.getString("message", "").trim();
 
-            JsonObject combinedRequest = combinedBuilder.build();
+            // Basic validation
+            if (batchId.isEmpty()) {
+                LOG.error("batch_id cannot be empty");
+                servletResponse.setStatus(400);
+                out.print("{\"status\":\"400\",\"message\":\"batch_id parameter cannot be empty\"}");
+                return;
+            }
 
-            LOG.info("Processing batch approval - batch_id: {}, status: {}, user: {}",
-                    batchId, requestJson.getString("status", ""), user);
+            if (status.isEmpty()) {
+                LOG.error("status cannot be empty");
+                servletResponse.setStatus(400);
+                out.print("{\"status\":\"400\",\"message\":\"status parameter cannot be empty\"}");
+                return;
+            }
 
+            if (message.isEmpty()) {
+                LOG.error("message cannot be empty");
+                servletResponse.setStatus(400);
+                out.print("{\"status\":\"400\",\"message\":\"message parameter cannot be empty\"}");
+                return;
+            }
+
+            // Create request object for service layer
+            JsonObjectBuilder requestBuilder = Json.createObjectBuilder();
+            addObject(requestBuilder, "batch_id", batchId);
+            addObject(requestBuilder, "status", status);
+            addObject(requestBuilder, "message", message);
+
+            JsonObject serviceRequest = requestBuilder.build();
+
+            LOG.info("Processing batch approval - batch_id: {}, status: {}, user: {}", batchId, status, user);
+
+            // Set response headers
             servletResponse.setContentType(APPLICATION_JSON);
             servletResponse.setCharacterEncoding(UTF_8);
 
-            // Execute the service
             setExecutor(new BatchApprovalService());
-            respStr = getExecutor().execute(combinedRequest.toString(), user, actionId);
+            respStr = getExecutor().execute(serviceRequest.toString(), user, actionId);
 
             // Determine HTTP status based on response
             JsonObject responseJson = toJsonObject(respStr);
             if (responseJson != null) {
-                String status = responseJson.getString("status", "500");
-                if ("00".equals(status)) {
+                String responseStatus = responseJson.getString("status", "500");
+                if ("00".equals(responseStatus)) {
                     servletResponse.setStatus(ResponseUtil.HTTP_OK_STATUS_1_INT);
-                } else if ("400".equals(status)) {
+                } else if ("400".equals(responseStatus)) {
                     servletResponse.setStatus(400);
-                } else if ("404".equals(status)) {
+                } else if ("404".equals(responseStatus)) {
                     servletResponse.setStatus(404);
                 } else {
                     servletResponse.setStatus(500);
@@ -181,32 +191,5 @@ public class BatchApprovalServlet extends CustomBaseServlet {
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         resp.setStatus(200);
         LOG.debug("OPTIONS request handled for CORS");
-    }
-
-    /**
-     * Extract batch_id from URL path
-     * Expected format: /app/transactions/approve/{batch_id}
-     * @param requestURI The full request URI
-     * @return The extracted batch_id or null if not found
-     */
-    private String extractBatchIdFromPath(String requestURI) {
-        if (requestURI == null || requestURI.trim().isEmpty()) {
-            return null;
-        }
-
-        try {
-            Matcher matcher = BATCH_ID_PATTERN.matcher(requestURI);
-            if (matcher.find()) {
-                String batchId = matcher.group(1);
-                LOG.debug("Extracted batch_id: '{}' from URI: '{}'", batchId, requestURI);
-                return batchId.trim();
-            } else {
-                LOG.warn("No batch_id found in URI: '{}'. Expected pattern: .../approve/{{batch_id}}", requestURI);
-                return null;
-            }
-        } catch (Exception e) {
-            LOG.error("Error extracting batch_id from URI: '{}'", requestURI, e);
-            return null;
-        }
     }
 }

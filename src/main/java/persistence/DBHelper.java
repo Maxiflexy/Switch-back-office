@@ -12,6 +12,7 @@ import java.util.List;
 
 import static constants.AppConstants.Constants.APP_CODE;
 import static constants.AppConstants.DbTables.*;
+import static constants.AppConstants.DbTables.TOKEN;
 
 
 public class DBHelper {
@@ -1066,7 +1067,6 @@ public class DBHelper {
             ps.setString(++kk, requestBean.getString("username"));
 
             try {
-
                 if (ps.executeUpdate() > 0) {
                     cnn.commit();
                     LOG.info("writing to users  succeeded");
@@ -1271,5 +1271,147 @@ public class DBHelper {
         }
         return response;
     }
+
+
+    public static boolean writeToRetrialTable(BaseBean requestBean) {
+        Connection cnn = ConnectionUtil.getConnection();
+        String countQuery = getServiceType_Query(requestBean.get("service_type"));
+        String query = "INSERT INTO ESBUSER.POSTING_RETRIAL"
+                .concat(" (batch_count, service_type, retrial_start_date, retrial_end_date, batch_id, created_by, creation_date, status) " +
+                        "select count(TranID), ?, TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), ?, ?, SYSDATE, ? ").concat(countQuery);
+
+        PreparedStatement ps = null;
+        boolean success = false;
+        LOG.info("Query: {}", query);
+        try {
+            int kk = 0;
+            cnn.setAutoCommit(false);
+            ps = cnn.prepareStatement(query);
+            ps.setString(++kk, requestBean.getString("service_type"));
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, requestBean.getString("batch_id"));
+            ps.setString(++kk, requestBean.getString("created_by"));
+            ps.setString(++kk, "PENDING");
+            ps.setString(++kk, "FTSingleCreditRequest");
+            ps.setString(++kk, "00");
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+
+            try {
+                if (ps.executeUpdate() > 0) {
+                    LOG.info("writing to posting retrial succeeded");
+                    success = writeToInflw_V2Table(requestBean, cnn);
+                }
+
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+
+            ConnectionUtil.closeConnection(cnn);
+
+        }
+        return success;
+    }
+
+
+
+    public static boolean writeToInflw_V2Table(BaseBean requestBean, Connection cnn) {
+        PreparedStatement ps = null;
+        boolean response = false;
+
+        try {
+            String serviceType = requestBean.getString("service_type");
+            String query = "UPDATE ESBUSER.NIP_IN_FLW_V2 " +
+                    "SET BATCH_ID = ? " +
+                    "WHERE TRANID IN (SELECT TranID FROM ESBUSER.NIP_IN_FLW_V2 ";
+
+            if ("POSTING".equals(serviceType)) {
+                query += "WHERE TRANTYPE = ? " +
+                        "AND TSQ_2_RSP_CODE = ? " +
+                        "AND TSQ_2_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') " +
+                        "AND (C24_RSP_FLG = 'N' OR C24_RSP_CODE NOT IN ('000','913')) " +
+                        "AND TXN_POSTING_FALLBACK_FLG = 'N' " +
+                        "AND TRANID > 0)";
+            } else if ("TSQ".equals(serviceType)) {
+                query += "WHERE TRANTYPE = ? " +
+                        "AND RESPONSECODE = ? " +
+                        "AND RESPONSEDATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') " +
+                        "AND (TSQ_2_FLG = 'N' OR TSQ_2_RSP_CODE IN ('97', '99','25')) " +
+                        "AND TSQ_FALLBACK_FLG = 'N' " +
+                        "AND TRANID > 0)";
+            } else {
+                requestBean.setString("message", "Invalid service type provided.");
+                return false;
+            }
+
+            LOG.info("Query: {}", query);
+            ps = cnn.prepareStatement(query);
+
+            int paramIndex = 1;
+
+            ps.setString(paramIndex++, requestBean.getString("batch_id"));
+            ps.setString(paramIndex++, "FTSingleCreditRequest");
+            ps.setString(paramIndex++, "00");
+            ps.setString(paramIndex++, requestBean.getString("start_date"));
+            ps.setString(paramIndex++, requestBean.getString("end_date"));
+
+            ps.executeUpdate();
+            response = true;
+
+            requestBean.setString("message", "Batch Created.");
+            cnn.commit();
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("Error updating NIP_INFLW_V2 table", e);
+            try {
+                if (cnn != null) cnn.rollback();
+            } catch (SQLException rollbackEx) {
+                LOG.error("Rollback failed", rollbackEx);
+            }
+
+        }
+
+        return response;
+    }
+
+
+
+    public static String getServiceType_Query(String serviceType) {
+        String query = "";
+        if (serviceType.equalsIgnoreCase("POSTING")) {
+            query = "from esbuser.nip_in_flw_v2 where  TRANTYPE=? and tsq_2_rsp_code =? " +
+                    "and tsq_2_date between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (c24_rsp_flg='N' OR c24_rsp_code NOT IN ('000','913')) " +
+                    "and txn_posting_fallback_flg='N' and tranid > 0 order by tranid asc";
+        }
+
+        if (serviceType.equalsIgnoreCase("TSQ")) {
+            query = "from esbuser.nip_in_flw_v2 where  trantype=? and responsecode =? " +
+                    "and responsedate between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (tsq_2_flg='N' OR tsq_2_rsp_code in ('97', '99','25')) " +
+                    "and tsq_fallback_flg='N' and TranID > 0 order by TranID asc";
+        }
+
+        return query;
+    }
+
+
+
 
 }

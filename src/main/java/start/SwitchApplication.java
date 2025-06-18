@@ -26,6 +26,7 @@ import services.serviceProvider.ApproveServiceServlet;
 import services.serviceProvider.Service;
 import services.switchController.ApproveSwitchServlet;
 import services.switchController.Switch;
+import services.transactions.BatchApprovalServlet;
 import services.transactions.FailedRetrialServlet;
 import services.transactions.PendingTransactionServlet;
 import services.virtualaccount.ApproveVirtualAccountServlet;
@@ -236,10 +237,19 @@ public class SwitchApplication {
             context.addServletMappingDecoded(apiContext +"/auditLog/*", "auditLogServlet");
 
             Tomcat.addServlet(context, "FailedRetrialServlet", new FailedRetrialServlet());
-            context.addServletMappingDecoded(apiContext + "/transactions/failed", "FailedRetrialServlet");
+            context.addServletMappingDecoded(apiContext + "/transaction/failed", "FailedRetrialServlet");
 
             Tomcat.addServlet(context, "PendingTransactionServlet", new PendingTransactionServlet());
-            context.addServletMappingDecoded(apiContext + "/transactions/pending", "PendingTransactionServlet");
+            context.addServletMappingDecoded(apiContext + "/transaction/pending", "PendingTransactionServlet");
+
+            Tomcat.addServlet(context, "FetchPendingTransactionServlet", new services.PendingTransactionServlet());
+            context.addServletMappingDecoded( apiContext +"/support/transaction", "FetchPendingTransactionServlet");
+
+            Tomcat.addServlet(context, "BatchApprovalServlet", new BatchApprovalServlet());
+            context.addServletMappingDecoded(apiContext + "/transaction/approve", "BatchApprovalServlet");
+
+            Tomcat.addServlet(context, "retrialController", new RetrialInterfaceController());
+            context.addServletMappingDecoded( apiContext + "/transactions/create", "retrialController");
 
 
             StandardContext standardContext = (StandardContext) context;
