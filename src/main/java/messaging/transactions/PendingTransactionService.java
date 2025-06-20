@@ -184,6 +184,18 @@ public class PendingTransactionService implements RequestExecutor {
             }
 
             JsonArray dataArray = JsonUtil.toJsonArray(pendingTransactionsStr);
+
+            // Fetch batch status once since all transactions have the same batch_id
+            String batchStatus = "N/A";
+            if (!dataArray.isEmpty()) {
+                JsonObject firstTransaction = dataArray.getJsonObject(0);
+                String batchId = JsonUtil.getJsonObjValue2(firstTransaction, "batch_id");
+                if (!batchId.trim().isEmpty()) {
+                    batchStatus = PendingTransactionDbHelper.getBatchStatus(batchId);
+                    LOG.info("Retrieved batch status '{}' for batch_id: {}", batchStatus, batchId);
+                }
+            }
+
             JsonArrayBuilder responseDataBuilder = Json.createArrayBuilder();
 
             // Transform data to match required response format
@@ -198,6 +210,7 @@ public class PendingTransactionService implements RequestExecutor {
                         .add("tran_narration", JsonUtil.getJsonObjValue2(item, "tran_narration"))
                         .add("response_code", JsonUtil.getJsonObjValue2(item, "response_code"))
                         .add("response_desc", JsonUtil.getJsonObjValue2(item, "response_desc"))
+                        .add("status", batchStatus)
                         .build();
                 responseDataBuilder.add(responseItem);
             }

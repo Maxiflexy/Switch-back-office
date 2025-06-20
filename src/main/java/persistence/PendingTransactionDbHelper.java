@@ -219,4 +219,51 @@ public class PendingTransactionDbHelper {
 
         return success;
     }
+
+    /**
+     * Fetch the status for a specific batch_id from ESBUSER.POSTING_RETRIAL table
+     * Since batch_id is unique, this will return a single status value
+     */
+    public static String getBatchStatus(String batchId) {
+        String status;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+        try {
+            String query = "SELECT status FROM ESBUSER.POSTING_RETRIAL WHERE batch_id = ?";
+
+            ps = cnn.prepareStatement(query);
+            ps.setString(1, batchId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                status = rs.getString("status");
+                //LOG.info("Found status '{}' for batch_id: {}", status, batchId);
+            } else {
+                //LOG.info("No status record found for batch_id: {}", batchId);
+                status = "N/A"; // Default value when no record exists
+            }
+
+            rs.close();
+
+        } catch (SQLException e) {
+            LOG.error("SQL error while fetching batch status for batch_id {}: {}", batchId, e.getMessage(), e);
+            status = "ERROR"; // Indicate there was an error fetching status
+        } catch (Exception e) {
+            LOG.error("Unexpected error while fetching batch status for batch_id {}: {}", batchId, e.getMessage(), e);
+            status = "ERROR";
+        } finally {
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("Error closing PreparedStatement: {}", e.getMessage());
+                }
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+
+        return status;
+    }
 }
