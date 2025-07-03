@@ -36,6 +36,7 @@ public class PendingTransactionServlet extends CustomBaseServlet {
 
             // Extract query parameters - handle null values gracefully
             String batchId = servletRequest.getParameter("batch_id");
+            String tranRef = servletRequest.getParameter("tran_ref");
             String startDate = servletRequest.getParameter("start_date");
             String endDate = servletRequest.getParameter("end_date");
             String requestType = servletRequest.getParameter("request_type");
@@ -47,6 +48,7 @@ public class PendingTransactionServlet extends CustomBaseServlet {
 
             // Add parameters to JSON builder (addObject handles null values)
             addObject(builder, "batch_id", batchId);
+            addObject(builder, "tran_ref", tranRef);
             addObject(builder, "start_date", startDate);
             addObject(builder, "end_date", endDate);
             addObject(builder, "request_type", requestType);

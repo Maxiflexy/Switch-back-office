@@ -39,6 +39,9 @@ public class FailedRetrialService implements RequestExecutor {
                 requestBean.setString("retrial_start_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_start_date"));
                 requestBean.setString("retrial_end_date", JsonUtil.getJsonObjValue2(jsonRequest, "retrial_end_date"));
 
+                // Add batch_id parameter (optional)
+                requestBean.setString("batch_id", JsonUtil.getJsonObjValue2(jsonRequest, "batch_id"));
+
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
             }
@@ -81,6 +84,11 @@ public class FailedRetrialService implements RequestExecutor {
                 LOG.info("End date parameter validated: {}", endDate);
             }
 
+            if (requestBean.getString("batch_id") != null && !requestBean.getString("batch_id").trim().isEmpty()) {
+                String batchId = requestBean.getString("batch_id").trim();
+                LOG.info("Batch ID parameter provided: {}", batchId);
+            }
+
             // Validate pagination parameters
             if (requestBean.getString("page") != null && !requestBean.getString("page").trim().isEmpty()) {
                 try {
@@ -111,11 +119,12 @@ public class FailedRetrialService implements RequestExecutor {
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching failed retrial requests for service_type: {}, status: {}, start_date: {}, end_date: {}",
+            LOG.info("Fetching failed retrial requests for service_type: {}, status: {}, start_date: {}, end_date: {}, batch_id: {}",
                     requestBean.getString("service_type"),
                     requestBean.getString("request_status"),
                     requestBean.getString("retrial_start_date"),
-                    requestBean.getString("retrial_end_date"));
+                    requestBean.getString("retrial_end_date"),
+                    requestBean.getString("batch_id"));
 
             // Call the database helper (database will handle TIMESTAMP conversion)
             boolean success = PostingRetrialDbHelper.getFailedRetrialRequests(requestBean);

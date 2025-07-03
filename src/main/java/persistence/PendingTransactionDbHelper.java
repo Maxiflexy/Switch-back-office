@@ -56,6 +56,14 @@ public class PendingTransactionDbHelper {
             return false;
         }
 
+        // Add tran_ref filter (optional) - filter on PAYMENTREFERENCE column
+        if (requestBean.containsKey("tran_ref") && !requestBean.getString("tran_ref").trim().isEmpty()) {
+            queryBuilder.append(" AND n.PAYMENTREFERENCE = ?");
+            countQueryBuilder.append(" AND n.PAYMENTREFERENCE = ?");
+            parameters.add(requestBean.getString("tran_ref").trim());
+            LOG.info("Adding tran_ref filter: {}", requestBean.getString("tran_ref"));
+        }
+
         // Handle DATE range filters - REQUESTDATE is DATE type, convert ISO format to DATE
         boolean hasStartDate = requestBean.containsKey("start_date") &&
                 !requestBean.getString("start_date").trim().isEmpty();
@@ -117,6 +125,11 @@ public class PendingTransactionDbHelper {
         LOG.info("Parameters: {}", parameters);
         LOG.info("Pagination - Page: {}, Size: {}, Offset: {}", page, size, offset);
 
+        // Debug: Log the tran_ref filter if provided
+        if (requestBean.containsKey("tran_ref") && !requestBean.getString("tran_ref").trim().isEmpty()) {
+            LOG.info("DEBUG: Filtering by tran_ref (PAYMENTREFERENCE): {}", requestBean.getString("tran_ref"));
+        }
+
         try {
             cnn = ConnectionUtil.getConnection();
             if (cnn == null) {
@@ -165,9 +178,15 @@ public class PendingTransactionDbHelper {
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
             int rowCount = 0;
 
+            LOG.info("DEBUG: Starting to process result set...");
             while (rs.next()) {
                 rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+
+                // Log each record for debugging
+                String currentPaymentRef = rs.getString("PAYMENTREFERENCE");
+                String currentBatchId = rs.getString("BATCH_ID");
+                LOG.debug("DEBUG: Processing record {}: PAYMENTREFERENCE={}, BATCH_ID={}", rowCount, currentPaymentRef, currentBatchId);
 
                 // Map database columns to response fields with null safety
                 jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
@@ -188,6 +207,7 @@ public class PendingTransactionDbHelper {
 
                 jsonArrayBuilder.add(jsonBuilder.build());
             }
+            LOG.info("DEBUG: Finished processing result set. Total records processed: {}", rowCount);
 
             success = true;
             requestBean.setString("pending_transactions", JsonUtil.toStr(jsonArrayBuilder.build()));

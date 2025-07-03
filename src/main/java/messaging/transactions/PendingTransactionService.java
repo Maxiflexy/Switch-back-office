@@ -33,6 +33,7 @@ public class PendingTransactionService implements RequestExecutor {
             // Extract parameters from request
             if (jsonRequest != null) {
                 requestBean.setString("batch_id", JsonUtil.getJsonObjValue2(jsonRequest, "batch_id"));
+                requestBean.setString("tran_ref", JsonUtil.getJsonObjValue2(jsonRequest, "tran_ref"));
                 requestBean.setString("start_date", JsonUtil.getJsonObjValue2(jsonRequest, "start_date"));
                 requestBean.setString("end_date", JsonUtil.getJsonObjValue2(jsonRequest, "end_date"));
                 requestBean.setString("request_type", JsonUtil.getJsonObjValue2(jsonRequest, "request_type"));
@@ -50,6 +51,15 @@ public class PendingTransactionService implements RequestExecutor {
                 Long.parseLong(requestBean.getString("batch_id").trim());
             } catch (NumberFormatException e) {
                 return createErrorResponse("400", "Invalid batch_id format. Must be a valid number.");
+            }
+
+            // Validate tran_ref parameter (optional)
+            if (requestBean.getString("tran_ref") != null && !requestBean.getString("tran_ref").trim().isEmpty()) {
+                String tranRef = requestBean.getString("tran_ref").trim();
+                if (tranRef.length() > 100) {
+                    return createErrorResponse("400", "tran_ref parameter cannot exceed 100 characters");
+                }
+                LOG.info("Transaction reference parameter provided: {}", tranRef);
             }
 
             // Validate date format for start_date (optional)
@@ -100,8 +110,9 @@ public class PendingTransactionService implements RequestExecutor {
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching pending transactions for batch_id: {}, start_date: {}, end_date: {}, request_type: {}",
+            LOG.info("Fetching pending transactions for batch_id: {}, tran_ref: {}, start_date: {}, end_date: {}, request_type: {}",
                     requestBean.getString("batch_id"),
+                    requestBean.getString("tran_ref"),
                     requestBean.getString("start_date"),
                     requestBean.getString("end_date"),
                     requestBean.getString("request_type"));

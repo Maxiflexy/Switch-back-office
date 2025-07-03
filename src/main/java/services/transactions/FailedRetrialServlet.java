@@ -36,6 +36,7 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             String requestStatus = servletRequest.getParameter("request_status");
             String retrialStartDate = servletRequest.getParameter("retrial_start_date");
             String retrialEndDate = servletRequest.getParameter("retrial_end_date");
+            String batchId = servletRequest.getParameter("batch_id");
             String page = servletRequest.getParameter("page");
             String size = servletRequest.getParameter("size");
 
@@ -47,6 +48,7 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             addObject(builder, "request_status", requestStatus);
             addObject(builder, "retrial_start_date", retrialStartDate);
             addObject(builder, "retrial_end_date", retrialEndDate);
+            addObject(builder, "batch_id", batchId);
             addObject(builder, "page", page);
             addObject(builder, "size", size);
 

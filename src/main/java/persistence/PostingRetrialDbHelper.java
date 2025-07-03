@@ -53,6 +53,14 @@ public class PostingRetrialDbHelper {
             LOG.info("Adding request_status filter: {}", requestBean.getString("request_status"));
         }
 
+        // Add batch_id filter (optional) - filter on batch_id column
+        if (requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty()) {
+            queryBuilder.append(" AND batch_id = ?");
+            countQueryBuilder.append(" AND batch_id = ?");
+            parameters.add(requestBean.getString("batch_id").trim());
+            LOG.info("Adding batch_id filter: {}", requestBean.getString("batch_id"));
+        }
+
         // Handle date range filters - filter on actual retrial date columns
         // Only add date filters if dates are provided and not empty
         boolean hasStartDate = requestBean.containsKey("retrial_start_date") &&
@@ -179,7 +187,7 @@ public class PostingRetrialDbHelper {
 
             success = true;
             requestBean.setString("retrial_requests", JsonUtil.toStr(jsonArrayBuilder.build()));
-            requestBean.setString("total_rows", String.valueOf(totalRows));
+            requestBean.setString("total_count", String.valueOf(totalRows));
             requestBean.setString("total_pages", String.valueOf(totalPages));
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
