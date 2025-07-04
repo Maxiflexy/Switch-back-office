@@ -40,8 +40,8 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             String page = servletRequest.getParameter("page");
             String size = servletRequest.getParameter("size");
 
-            LOG.info("Received request parameters - service_type: {}, request_status: {}, retrial_start_date: {}, retrial_end_date: {}, page: {}, size: {}",
-                    serviceType, requestStatus, retrialStartDate, retrialEndDate, page, size);
+            LOG.info("Received request parameters - service_type: {}, request_status: {}, retrial_start_date: {}, retrial_end_date: {}, batch_id: {}, page: {}, size: {}",
+                    serviceType, requestStatus, retrialStartDate, retrialEndDate, batchId, page, size);
 
             // Add parameters to JSON builder (addObject handles null values)
             addObject(builder, "service_type", serviceType);

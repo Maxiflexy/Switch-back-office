@@ -67,53 +67,58 @@ public class FailedRetrialService implements RequestExecutor {
                 LOG.warn("Unexpected service_type value: {}. Proceeding with query anyway.", serviceType);
             }
 
-            // Validate date format
-            if (requestBean.getString("retrial_start_date") != null && !requestBean.getString("retrial_start_date").trim().isEmpty()) {
-                String startDate = requestBean.getString("retrial_start_date").trim();
-                if (!isValidDateFormat(startDate)) {
-                    return createErrorResponse("400", "Invalid retrial_start_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-16T07:38:25)");
-                }
-                LOG.info("Start date parameter validated: {}", startDate);
-            }
+            boolean hasBatchId = requestBean.getString("batch_id") != null && !requestBean.getString("batch_id").trim().isEmpty();
 
-            if (requestBean.getString("retrial_end_date") != null && !requestBean.getString("retrial_end_date").trim().isEmpty()) {
-                String endDate = requestBean.getString("retrial_end_date").trim();
-                if (!isValidDateFormat(endDate)) {
-                    return createErrorResponse("400", "Invalid retrial_end_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-17T07:38:25)");
-                }
-                LOG.info("End date parameter validated: {}", endDate);
-            }
-
-            if (requestBean.getString("batch_id") != null && !requestBean.getString("batch_id").trim().isEmpty()) {
+            if (hasBatchId) {
+                // When batch_id is provided, only validate batch_id (ignore date and pagination params)
                 String batchId = requestBean.getString("batch_id").trim();
-                LOG.info("Batch ID parameter provided: {}", batchId);
-            }
+                LOG.info("Batch ID parameter provided: {} - Using single record mode", batchId);
 
-            // Validate pagination parameters
-            if (requestBean.getString("page") != null && !requestBean.getString("page").trim().isEmpty()) {
-                try {
-                    int page = Integer.parseInt(requestBean.getString("page").trim());
-                    if (page < 1) {
-                        return createErrorResponse("400", "page parameter must be greater than 0");
+            } else {
+                // When batch_id is not provided, validate date format and pagination (existing logic)
+                if (requestBean.getString("retrial_start_date") != null && !requestBean.getString("retrial_start_date").trim().isEmpty()) {
+                    String startDate = requestBean.getString("retrial_start_date").trim();
+                    if (!isValidDateFormat(startDate)) {
+                        return createErrorResponse("400", "Invalid retrial_start_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-16T07:38:25)");
                     }
-                } catch (NumberFormatException e) {
-                    return createErrorResponse("400", "Invalid page parameter. Must be a valid integer.");
+                    LOG.info("Start date parameter validated: {}", startDate);
+                }
+
+                if (requestBean.getString("retrial_end_date") != null && !requestBean.getString("retrial_end_date").trim().isEmpty()) {
+                    String endDate = requestBean.getString("retrial_end_date").trim();
+                    if (!isValidDateFormat(endDate)) {
+                        return createErrorResponse("400", "Invalid retrial_end_date format. Expected: yyyy-MM-ddTHH:mm:ss (e.g., 2025-06-17T07:38:25)");
+                    }
+                    LOG.info("End date parameter validated: {}", endDate);
+                }
+
+                // Validate pagination parameters
+                if (requestBean.getString("page") != null && !requestBean.getString("page").trim().isEmpty()) {
+                    try {
+                        int page = Integer.parseInt(requestBean.getString("page").trim());
+                        if (page < 1) {
+                            return createErrorResponse("400", "page parameter must be greater than 0");
+                        }
+                    } catch (NumberFormatException e) {
+                        return createErrorResponse("400", "Invalid page parameter. Must be a valid integer.");
+                    }
+                }
+
+                if (requestBean.getString("size") != null && !requestBean.getString("size").trim().isEmpty()) {
+                    try {
+                        int size = Integer.parseInt(requestBean.getString("size").trim());
+                        if (size < 1) {
+                            return createErrorResponse("400", "size parameter must be greater than 0");
+                        }
+                        if (size > 100) {
+                            return createErrorResponse("400", "size parameter cannot exceed 100");
+                        }
+                    } catch (NumberFormatException e) {
+                        return createErrorResponse("400", "Invalid size parameter. Must be a valid integer.");
+                    }
                 }
             }
 
-            if (requestBean.getString("size") != null && !requestBean.getString("size").trim().isEmpty()) {
-                try {
-                    int size = Integer.parseInt(requestBean.getString("size").trim());
-                    if (size < 1) {
-                        return createErrorResponse("400", "size parameter must be greater than 0");
-                    }
-                    if (size > 100) {
-                        return createErrorResponse("400", "size parameter cannot exceed 100");
-                    }
-                } catch (NumberFormatException e) {
-                    return createErrorResponse("400", "Invalid size parameter. Must be a valid integer.");
-                }
-            }
 
             // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
@@ -207,27 +212,57 @@ public class FailedRetrialService implements RequestExecutor {
             JsonArray dataArray = JsonUtil.toJsonArray(retrialRequestsStr);
             JsonArrayBuilder responseDataBuilder = Json.createArrayBuilder();
 
+            boolean hasBatchId = requestBean.getString("batch_id") != null && !requestBean.getString("batch_id").trim().isEmpty();
+
             // Transform data to match required response format
             for (int i = 0; i < dataArray.size(); i++) {
                 JsonObject item = dataArray.getJsonObject(i);
-                JsonObject responseItem = Json.createObjectBuilder()
-                        .add("batch_id", JsonUtil.getJsonObjValue2(item, "batch_id"))
-                        .add("batch_count", JsonUtil.getJsonObjValue2(item, "batch_count"))
-                        .add("creation_date", JsonUtil.getJsonObjValue2(item, "creation_date"))
-                        .add("service_type", JsonUtil.getJsonObjValue2(item, "service_type"))
-                        .add("status", JsonUtil.getJsonObjValue2(item, "status"))
-                        .add("created_by", JsonUtil.getJsonObjValue2(item, "created_by"))
-                        .add("retrial_start_date", JsonUtil.getJsonObjValue2(item, "retrial_start_date"))
-                        .add("retrial_end_date", JsonUtil.getJsonObjValue2(item, "retrial_end_date"))
-                        .add("approved_by", JsonUtil.getJsonObjValue2(item, "approved_by"))
-                        .add("approval_date", JsonUtil.getJsonObjValue2(item, "approval_date"))
-                        .add("posting_date", JsonUtil.getJsonObjValue2(item, "posting_date"))
-                        .add("posting_resp_flg", JsonUtil.getJsonObjValue2(item, "posting_resp_flg"))
-                        .add("posting_resp_code", JsonUtil.getJsonObjValue2(item, "posting_resp_code"))
-                        .add("posting_retrial_count", JsonUtil.getJsonObjValue2(item, "posting_retrial_count"))
-                        .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
-                        .build();
-                responseDataBuilder.add(responseItem);
+
+                if (hasBatchId) {
+                    // Single record mode - return all 19 columns
+                    JsonObject responseItem = Json.createObjectBuilder()
+                            .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
+                            .add("service_type", JsonUtil.getJsonObjValue2(item, "service_type"))
+                            .add("retrial_start_date", JsonUtil.getJsonObjValue2(item, "retrial_start_date"))
+                            .add("retrial_end_date", JsonUtil.getJsonObjValue2(item, "retrial_end_date"))
+                            .add("created_by", JsonUtil.getJsonObjValue2(item, "created_by"))
+                            .add("creation_date", JsonUtil.getJsonObjValue2(item, "creation_date"))
+                            .add("batch_id", JsonUtil.getJsonObjValue2(item, "batch_id"))
+                            .add("batch_count", JsonUtil.getJsonObjValue2(item, "batch_count"))
+                            .add("status", JsonUtil.getJsonObjValue2(item, "status"))
+                            .add("approved_by", JsonUtil.getJsonObjValue2(item, "approved_by"))
+                            .add("approval_date", JsonUtil.getJsonObjValue2(item, "approval_date"))
+                            .add("posting_date", JsonUtil.getJsonObjValue2(item, "posting_date"))
+                            .add("posting_resp_flg", JsonUtil.getJsonObjValue2(item, "posting_resp_flg"))
+                            .add("posting_resp_code", JsonUtil.getJsonObjValue2(item, "posting_resp_code"))
+                            .add("posting_retrial_count", JsonUtil.getJsonObjValue2(item, "posting_retrial_count"))
+                            .add("updated_by", JsonUtil.getJsonObjValue2(item, "updated_by"))
+                            .add("updated_date", JsonUtil.getJsonObjValue2(item, "updated_date"))
+                            .add("approval_message", JsonUtil.getJsonObjValue2(item, "approval_message"))
+                            .add("switch_type", JsonUtil.getJsonObjValue2(item, "switch_type"))
+                            .build();
+                    responseDataBuilder.add(responseItem);
+                } else {
+                    // Paginated mode - return existing 15 columns
+                    JsonObject responseItem = Json.createObjectBuilder()
+                            .add("batch_id", JsonUtil.getJsonObjValue2(item, "batch_id"))
+                            .add("batch_count", JsonUtil.getJsonObjValue2(item, "batch_count"))
+                            .add("creation_date", JsonUtil.getJsonObjValue2(item, "creation_date"))
+                            .add("service_type", JsonUtil.getJsonObjValue2(item, "service_type"))
+                            .add("status", JsonUtil.getJsonObjValue2(item, "status"))
+                            .add("created_by", JsonUtil.getJsonObjValue2(item, "created_by"))
+                            .add("retrial_start_date", JsonUtil.getJsonObjValue2(item, "retrial_start_date"))
+                            .add("retrial_end_date", JsonUtil.getJsonObjValue2(item, "retrial_end_date"))
+                            .add("approved_by", JsonUtil.getJsonObjValue2(item, "approved_by"))
+                            .add("approval_date", JsonUtil.getJsonObjValue2(item, "approval_date"))
+                            .add("posting_date", JsonUtil.getJsonObjValue2(item, "posting_date"))
+                            .add("posting_resp_flg", JsonUtil.getJsonObjValue2(item, "posting_resp_flg"))
+                            .add("posting_resp_code", JsonUtil.getJsonObjValue2(item, "posting_resp_code"))
+                            .add("posting_retrial_count", JsonUtil.getJsonObjValue2(item, "posting_retrial_count"))
+                            .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
+                            .build();
+                    responseDataBuilder.add(responseItem);
+                }
             }
 
             JsonObject response = Json.createObjectBuilder()
@@ -242,6 +277,7 @@ public class FailedRetrialService implements RequestExecutor {
 
             LOG.info("Successfully created response with {} records", dataArray.size());
             return JsonUtil.toStr(response);
+
 
         } catch (Exception e) {
             LOG.error("Error creating success response", e);

@@ -21,6 +21,142 @@ public class PostingRetrialDbHelper {
     final static Logger LOG = LogManager.getLogger(PostingRetrialDbHelper.class);
 
     public static boolean getFailedRetrialRequests(BaseBean requestBean) {
+        // Check if batch_id is provided to determine query mode
+        boolean hasBatchId = requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty();
+
+        if (hasBatchId) {
+            // Single record mode - return all 19 columns
+            return getFailedRetrialRequestSingle(requestBean);
+        } else {
+            // Paginated mode - return 15 columns with pagination
+            return getFailedRetrialRequestsPaginated(requestBean);
+        }
+    }
+
+
+    /**
+     * Get single failed retrial request by batch_id with all 19 columns
+     */
+    private static boolean getFailedRetrialRequestSingle(BaseBean requestBean) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT sno, service_type, ");
+        queryBuilder.append("TO_CHAR(retrial_start_date, 'YYYY-MM-DD HH24:MI:SS') as retrial_start_date, ");
+        queryBuilder.append("TO_CHAR(retrial_end_date, 'YYYY-MM-DD HH24:MI:SS') as retrial_end_date, ");
+        queryBuilder.append("created_by, ");
+        queryBuilder.append("TO_CHAR(creation_date, 'YYYY-MM-DD HH24:MI:SS') as creation_date, ");
+        queryBuilder.append("batch_id, batch_count, status, approved_by, ");
+        queryBuilder.append("TO_CHAR(approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date, ");
+        queryBuilder.append("TO_CHAR(posting_date, 'YYYY-MM-DD HH24:MI:SS') as posting_date, ");
+        queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count, ");
+        queryBuilder.append("updated_by, TO_CHAR(updated_date, 'YYYY-MM-DD HH24:MI:SS') as updated_date, approval_message, switch_type ");
+        queryBuilder.append("FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
+
+        List<Object> parameters = new ArrayList<>();
+
+        // Add service_type filter (required)
+        if (requestBean.containsKey("service_type") && !requestBean.getString("service_type").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(service_type) = UPPER(?)");
+            parameters.add(requestBean.getString("service_type").trim());
+        }
+
+        // Add status filter (required)
+        if (requestBean.containsKey("request_status") && !requestBean.getString("request_status").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(status) = UPPER(?)");
+            parameters.add(requestBean.getString("request_status").trim());
+        }
+
+        queryBuilder.append(" AND batch_id = ?");
+        parameters.add(requestBean.getString("batch_id").trim());
+
+        String query = queryBuilder.toString();
+
+        boolean success = false;
+        Connection cnn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        LOG.info("Executing single record query: {}", query);
+
+        try {
+            cnn = ConnectionUtil.getConnection();
+            if (cnn == null) {
+                LOG.error("Failed to get database connection");
+                requestBean.setString("message", "Database connection failed");
+                return false;
+            }
+
+            ps = cnn.prepareStatement(query);
+            int paramIndex = 1;
+            for (Object param : parameters) {
+                ps.setObject(paramIndex++, param);
+            }
+
+            rs = ps.executeQuery();
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+            int rowCount = 0;
+
+            while (rs.next()) {
+                rowCount++;
+                JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+
+                jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
+                jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
+                jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
+                jsonBuilder.add("retrial_end_date", rs.getString("retrial_end_date") != null ? rs.getString("retrial_end_date") : "");
+                jsonBuilder.add("created_by", rs.getString("created_by") != null ? rs.getString("created_by") : "");
+                jsonBuilder.add("creation_date", rs.getString("creation_date") != null ? rs.getString("creation_date") : "");
+                jsonBuilder.add("batch_id", rs.getString("batch_id") != null ? rs.getString("batch_id") : "");
+                jsonBuilder.add("batch_count", rs.getString("batch_count") != null ? rs.getString("batch_count") : "");
+                jsonBuilder.add("status", rs.getString("status") != null ? rs.getString("status") : "");
+                jsonBuilder.add("approved_by", rs.getString("approved_by") != null ? rs.getString("approved_by") : "");
+                jsonBuilder.add("approval_date", rs.getString("approval_date") != null ? rs.getString("approval_date") : "");
+                jsonBuilder.add("posting_date", rs.getString("posting_date") != null ? rs.getString("posting_date") : "");
+                jsonBuilder.add("posting_resp_flg", rs.getString("posting_resp_flg") != null ? rs.getString("posting_resp_flg") : "");
+                jsonBuilder.add("posting_resp_code", rs.getString("posting_resp_code") != null ? rs.getString("posting_resp_code") : "");
+                jsonBuilder.add("posting_retrial_count", rs.getString("posting_retrial_count") != null ? rs.getString("posting_retrial_count") : "");
+                jsonBuilder.add("updated_by", rs.getString("updated_by") != null ? rs.getString("updated_by") : "");
+                jsonBuilder.add("updated_date", rs.getString("updated_date") != null ? rs.getString("updated_date") : "");
+                jsonBuilder.add("approval_message", rs.getString("approval_message") != null ? rs.getString("approval_message") : "");
+                jsonBuilder.add("switch_type", rs.getString("switch_type") != null ? rs.getString("switch_type") : "");
+
+                jsonArrayBuilder.add(jsonBuilder.build());
+            }
+            LOG.info("DEBUG: Finished processing single record result set. Total records processed: {}", rowCount);
+
+            success = true;
+            requestBean.setString("retrial_requests", JsonUtil.toStr(jsonArrayBuilder.build()));
+            // For single record mode, set these values appropriately
+            requestBean.setString("total_rows", String.valueOf(rowCount));
+            requestBean.setString("total_pages", rowCount > 0 ? "1" : "0");
+            requestBean.setString("current_page", "1");
+            requestBean.setString("page_size", String.valueOf(rowCount));
+
+            LOG.info("Successfully fetched {} retrial request(s) for batch_id: {}", rowCount, requestBean.getString("batch_id"));
+
+        } catch (SQLException e) {
+            LOG.error("SQL error in getFailedRetrialRequestSingle: {}", e.getMessage(), e);
+            requestBean.setString("message", "Database error: " + e.getMessage());
+        } catch (Exception e) {
+            LOG.error("Error in getFailedRetrialRequestSingle: {}", e.getMessage(), e);
+            requestBean.setString("message", "Error processing request: " + e.getMessage());
+        } finally {
+            // Close resources
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (cnn != null) ConnectionUtil.closeConnection(cnn);
+            } catch (SQLException e) {
+                LOG.error("Error closing database resources", e);
+            }
+        }
+
+        return success;
+    }
+
+    /**
+     * Get paginated failed retrial requests with 15 columns (existing logic)
+     */
+    private static boolean getFailedRetrialRequestsPaginated(BaseBean requestBean) {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("SELECT sno, service_type, ");
         queryBuilder.append("TO_CHAR(retrial_start_date, 'YYYY-MM-DD HH24:MI:SS') as retrial_start_date, ");
@@ -121,6 +257,11 @@ public class PostingRetrialDbHelper {
         LOG.info("Parameters: {}", parameters);
         LOG.info("Pagination - Page: {}, Size: {}, Offset: {}", page, size, offset);
 
+        // Debug: Log the exact SQL with parameters for troubleshooting
+        if (requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty()) {
+            LOG.info("DEBUG: Filtering by batch_id: {}", requestBean.getString("batch_id"));
+        }
+
         try {
             cnn = ConnectionUtil.getConnection();
             if (cnn == null) {
@@ -161,9 +302,15 @@ public class PostingRetrialDbHelper {
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
             int rowCount = 0;
 
+            LOG.info("DEBUG: Starting to process result set...");
             while (rs.next()) {
                 rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+
+                // Log each record for debugging
+                String currentBatchId = rs.getString("batch_id");
+                String currentSno = rs.getString("sno");
+                LOG.debug("DEBUG: Processing record {}: sno={}, batch_id={}", rowCount, currentSno, currentBatchId);
 
                 // Handle all columns with null safety
                 jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
@@ -184,10 +331,11 @@ public class PostingRetrialDbHelper {
 
                 jsonArrayBuilder.add(jsonBuilder.build());
             }
+            LOG.info("DEBUG: Finished processing result set. Total records processed: {}", rowCount);
 
             success = true;
             requestBean.setString("retrial_requests", JsonUtil.toStr(jsonArrayBuilder.build()));
-            requestBean.setString("total_count", String.valueOf(totalRows));
+            requestBean.setString("total_rows", String.valueOf(totalRows));
             requestBean.setString("total_pages", String.valueOf(totalPages));
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
