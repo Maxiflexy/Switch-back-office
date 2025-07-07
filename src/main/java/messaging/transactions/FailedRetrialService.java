@@ -119,8 +119,6 @@ public class FailedRetrialService implements RequestExecutor {
                 }
             }
 
-
-            // Set the user for audit trail
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 

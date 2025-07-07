@@ -33,7 +33,6 @@ public class PostingRetrialDbHelper {
         }
     }
 
-
     /**
      * Get single failed retrial request by batch_id with all 19 columns
      */
@@ -48,6 +47,7 @@ public class PostingRetrialDbHelper {
         queryBuilder.append("TO_CHAR(approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date, ");
         queryBuilder.append("TO_CHAR(posting_date, 'YYYY-MM-DD HH24:MI:SS') as posting_date, ");
         queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count, ");
+        // Add the additional 4 columns for complete record (19 columns total)
         queryBuilder.append("updated_by, TO_CHAR(updated_date, 'YYYY-MM-DD HH24:MI:SS') as updated_date, approval_message, switch_type ");
         queryBuilder.append("FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
 
@@ -57,16 +57,20 @@ public class PostingRetrialDbHelper {
         if (requestBean.containsKey("service_type") && !requestBean.getString("service_type").trim().isEmpty()) {
             queryBuilder.append(" AND UPPER(service_type) = UPPER(?)");
             parameters.add(requestBean.getString("service_type").trim());
+            LOG.info("Adding service_type filter: {}", requestBean.getString("service_type"));
         }
 
         // Add status filter (required)
         if (requestBean.containsKey("request_status") && !requestBean.getString("request_status").trim().isEmpty()) {
             queryBuilder.append(" AND UPPER(status) = UPPER(?)");
             parameters.add(requestBean.getString("request_status").trim());
+            LOG.info("Adding request_status filter: {}", requestBean.getString("request_status"));
         }
 
+        // Add batch_id filter (required for single mode)
         queryBuilder.append(" AND batch_id = ?");
         parameters.add(requestBean.getString("batch_id").trim());
+        LOG.info("Adding batch_id filter: {}", requestBean.getString("batch_id"));
 
         String query = queryBuilder.toString();
 
@@ -76,6 +80,7 @@ public class PostingRetrialDbHelper {
         ResultSet rs = null;
 
         LOG.info("Executing single record query: {}", query);
+        LOG.info("Parameters: {}", parameters);
 
         try {
             cnn = ConnectionUtil.getConnection();
@@ -89,16 +94,19 @@ public class PostingRetrialDbHelper {
             int paramIndex = 1;
             for (Object param : parameters) {
                 ps.setObject(paramIndex++, param);
+                LOG.debug("Query parameter {}: {}", paramIndex-1, param);
             }
 
             rs = ps.executeQuery();
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
             int rowCount = 0;
 
+            LOG.info("DEBUG: Starting to process single record result set...");
             while (rs.next()) {
                 rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
+                // Handle all 19 columns with null safety
                 jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
                 jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
                 jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
@@ -114,6 +122,7 @@ public class PostingRetrialDbHelper {
                 jsonBuilder.add("posting_resp_flg", rs.getString("posting_resp_flg") != null ? rs.getString("posting_resp_flg") : "");
                 jsonBuilder.add("posting_resp_code", rs.getString("posting_resp_code") != null ? rs.getString("posting_resp_code") : "");
                 jsonBuilder.add("posting_retrial_count", rs.getString("posting_retrial_count") != null ? rs.getString("posting_retrial_count") : "");
+                // Add the additional 4 columns for complete record
                 jsonBuilder.add("updated_by", rs.getString("updated_by") != null ? rs.getString("updated_by") : "");
                 jsonBuilder.add("updated_date", rs.getString("updated_date") != null ? rs.getString("updated_date") : "");
                 jsonBuilder.add("approval_message", rs.getString("approval_message") != null ? rs.getString("approval_message") : "");
@@ -197,7 +206,7 @@ public class PostingRetrialDbHelper {
             LOG.info("Adding batch_id filter: {}", requestBean.getString("batch_id"));
         }
 
-        // Handle date range filters - filter on actual retrial date columns
+        // Handle date range filters - filter on CREATION_DATE column instead of retrial date columns
         // Only add date filters if dates are provided and not empty
         boolean hasStartDate = requestBean.containsKey("retrial_start_date") &&
                 !requestBean.getString("retrial_start_date").trim().isEmpty();
@@ -205,17 +214,19 @@ public class PostingRetrialDbHelper {
                 !requestBean.getString("retrial_end_date").trim().isEmpty();
 
         if (hasStartDate) {
-            queryBuilder.append(" AND retrial_start_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND retrial_start_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            // Filter on CREATION_DATE using retrial_start_date parameter
+            queryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND creation_date >= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
             parameters.add(requestBean.getString("retrial_start_date").trim());
-            LOG.info("Adding retrial_start_date filter: {}", requestBean.getString("retrial_start_date"));
+            LOG.info("Adding retrial_start_date filter on creation_date: {}", requestBean.getString("retrial_start_date"));
         }
 
         if (hasEndDate) {
-            queryBuilder.append(" AND retrial_end_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND retrial_end_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            // Filter on CREATION_DATE using retrial_end_date parameter
+            queryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND creation_date <= TO_TIMESTAMP(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
             parameters.add(requestBean.getString("retrial_end_date").trim());
-            LOG.info("Adding retrial_end_date filter: {}", requestBean.getString("retrial_end_date"));
+            LOG.info("Adding retrial_end_date filter on creation_date: {}", requestBean.getString("retrial_end_date"));
         }
 
         // Add sorting by creation_date in descending order

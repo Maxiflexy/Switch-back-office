@@ -52,14 +52,6 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             addObject(builder, "page", page);
             addObject(builder, "size", size);
 
-            // Extract query parameters
-//            addObject(builder, "service_type", servletRequest.getParameter("service_type"));
-//            addObject(builder, "request_status", servletRequest.getParameter("request_status"));
-//            addObject(builder, "retrial_start_date", servletRequest.getParameter("retrial_start_date"));
-//            addObject(builder, "retrial_end_date", servletRequest.getParameter("retrial_end_date"));
-//            addObject(builder, "page", servletRequest.getParameter("page"));
-//            addObject(builder, "size", servletRequest.getParameter("size"));
-
             servletResponse.setStatus(ResponseUtil.HTTP_OK_STATUS_1_INT);
             servletResponse.setContentType(APPLICATION_JSON);
             servletResponse.setCharacterEncoding(UTF_8);
