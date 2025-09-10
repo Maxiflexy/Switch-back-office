@@ -19,6 +19,8 @@ import service.servlet.*;
 import services.*;
 import services.fileservlets.Approveupload;
 import services.fileservlets.UploadServlet;
+import services.outflow.OutflowSwitchSequence;
+import services.outflow.SwitchAlgorithmController;
 import services.performance.PerformanceServlet;
 import services.performance.endpoints.ApproveEndpointServlet;
 import services.performance.endpoints.Endpoint;
@@ -112,7 +114,7 @@ public class SwitchApplication {
             context.setAddWebinfClassesResources(false);
             FilterDef fd = new FilterDef();
             fd.setFilterClass(CORSFilter.class.getName());
-            fd.setFilterName("CorsFilter");
+            fd.setFilterName("CorsFilter"); 
             FilterMap fm = new FilterMap();
             fm.setFilterName("CorsFilter");
             fm.addURLPattern("/*");
@@ -236,20 +238,27 @@ public class SwitchApplication {
             Tomcat.addServlet(context, "auditLogServlet", new AuditLogServlet());
             context.addServletMappingDecoded(apiContext +"/auditLog/*", "auditLogServlet");
 
-            Tomcat.addServlet(context, "FailedRetrialServlet", new FailedRetrialServlet());
+            Tomcat.addServlet(context, "FailedRetrialServlet", new FailedRetrialServlet());//
             context.addServletMappingDecoded(apiContext + "/transaction/failed", "FailedRetrialServlet");
 
-            Tomcat.addServlet(context, "PendingTransactionServlet", new PendingTransactionServlet());
+            Tomcat.addServlet(context, "PendingTransactionServlet", new PendingTransactionServlet());//
             context.addServletMappingDecoded(apiContext + "/transaction/pending", "PendingTransactionServlet");
 
             Tomcat.addServlet(context, "FetchPendingTransactionServlet", new services.PendingTransactionServlet());
             context.addServletMappingDecoded( apiContext +"/support/transaction", "FetchPendingTransactionServlet");
 
-            Tomcat.addServlet(context, "BatchApprovalServlet", new BatchApprovalServlet());
+            Tomcat.addServlet(context, "BatchApprovalServlet", new BatchApprovalServlet());//
             context.addServletMappingDecoded(apiContext + "/transaction/approve", "BatchApprovalServlet");
 
             Tomcat.addServlet(context, "retrialController", new RetrialInterfaceController());
             context.addServletMappingDecoded( apiContext + "/transactions/create", "retrialController");
+
+            Tomcat.addServlet(context, "switchAlgorithm", new SwitchAlgorithmController());
+            context.addServletMappingDecoded( apiContext + "/outflow/algorithm", "switchAlgorithm");
+
+            Tomcat.addServlet(context, "switchSequence", new OutflowSwitchSequence());
+            context.addServletMappingDecoded( apiContext + "/outflow/sequence", "switchSequence");
+
 
 
             StandardContext standardContext = (StandardContext) context;

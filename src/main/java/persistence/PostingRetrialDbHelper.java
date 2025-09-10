@@ -25,16 +25,16 @@ public class PostingRetrialDbHelper {
         boolean hasBatchId = requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty();
 
         if (hasBatchId) {
-            // Single record mode - return all 19 columns
+            // Single record mode - return all 20 columns (added module)
             return getFailedRetrialRequestSingle(requestBean);
         } else {
-            // Paginated mode - return 15 columns with pagination
+            // Paginated mode - return 16 columns with pagination (added module)
             return getFailedRetrialRequestsPaginated(requestBean);
         }
     }
 
     /**
-     * Get single failed retrial request by batch_id with all 19 columns
+     * Get single failed retrial request by batch_id with all 20 columns (added module)
      */
     private static boolean getFailedRetrialRequestSingle(BaseBean requestBean) {
         StringBuilder queryBuilder = new StringBuilder();
@@ -47,8 +47,9 @@ public class PostingRetrialDbHelper {
         queryBuilder.append("TO_CHAR(approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date, ");
         queryBuilder.append("TO_CHAR(posting_date, 'YYYY-MM-DD HH24:MI:SS') as posting_date, ");
         queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count, ");
-        // Add the additional 4 columns for complete record (19 columns total)
-        queryBuilder.append("updated_by, TO_CHAR(updated_date, 'YYYY-MM-DD HH24:MI:SS') as updated_date, approval_message, switch_type ");
+        // Add the additional 5 columns for complete record (20 columns total - including module)
+        queryBuilder.append("updated_by, TO_CHAR(updated_date, 'YYYY-MM-DD HH24:MI:SS') as updated_date, approval_message, switch_type, ");
+        queryBuilder.append("module ");  // Added module field
         queryBuilder.append("FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
 
         List<Object> parameters = new ArrayList<>();
@@ -71,6 +72,13 @@ public class PostingRetrialDbHelper {
         queryBuilder.append(" AND batch_id = ?");
         parameters.add(requestBean.getString("batch_id").trim());
         LOG.info("Adding batch_id filter: {}", requestBean.getString("batch_id"));
+
+        // Add module filter (optional) - applies to both single and paginated modes
+        if (requestBean.containsKey("module") && !requestBean.getString("module").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(module) = UPPER(?)");
+            parameters.add(requestBean.getString("module").trim());
+            LOG.info("Adding module filter: {}", requestBean.getString("module"));
+        }
 
         String query = queryBuilder.toString();
 
@@ -106,7 +114,7 @@ public class PostingRetrialDbHelper {
                 rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
-                // Handle all 19 columns with null safety
+                // Handle all 20 columns with null safety (added module)
                 jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
                 jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
                 jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
@@ -122,11 +130,12 @@ public class PostingRetrialDbHelper {
                 jsonBuilder.add("posting_resp_flg", rs.getString("posting_resp_flg") != null ? rs.getString("posting_resp_flg") : "");
                 jsonBuilder.add("posting_resp_code", rs.getString("posting_resp_code") != null ? rs.getString("posting_resp_code") : "");
                 jsonBuilder.add("posting_retrial_count", rs.getString("posting_retrial_count") != null ? rs.getString("posting_retrial_count") : "");
-                // Add the additional 4 columns for complete record
+                // Add the additional 5 columns for complete record (including module)
                 jsonBuilder.add("updated_by", rs.getString("updated_by") != null ? rs.getString("updated_by") : "");
                 jsonBuilder.add("updated_date", rs.getString("updated_date") != null ? rs.getString("updated_date") : "");
                 jsonBuilder.add("approval_message", rs.getString("approval_message") != null ? rs.getString("approval_message") : "");
                 jsonBuilder.add("switch_type", rs.getString("switch_type") != null ? rs.getString("switch_type") : "");
+                jsonBuilder.add("module", rs.getString("module") != null ? rs.getString("module") : "");  // Added module field
 
                 jsonArrayBuilder.add(jsonBuilder.build());
             }
@@ -163,7 +172,7 @@ public class PostingRetrialDbHelper {
     }
 
     /**
-     * Get paginated failed retrial requests with 15 columns (existing logic)
+     * Get paginated failed retrial requests with 16 columns (added module)
      */
     private static boolean getFailedRetrialRequestsPaginated(BaseBean requestBean) {
         StringBuilder queryBuilder = new StringBuilder();
@@ -175,7 +184,8 @@ public class PostingRetrialDbHelper {
         queryBuilder.append("batch_id, batch_count, status, approved_by, ");
         queryBuilder.append("TO_CHAR(approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date, ");
         queryBuilder.append("TO_CHAR(posting_date, 'YYYY-MM-DD HH24:MI:SS') as posting_date, ");
-        queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count ");
+        queryBuilder.append("posting_resp_flg, posting_resp_code, posting_retrial_count, ");
+        queryBuilder.append("module ");  // Added module field
         queryBuilder.append("FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
 
         StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(*) as total_count FROM ESBUSER.POSTING_RETRIAL WHERE 1=1");
@@ -204,6 +214,14 @@ public class PostingRetrialDbHelper {
             countQueryBuilder.append(" AND batch_id = ?");
             parameters.add(requestBean.getString("batch_id").trim());
             LOG.info("Adding batch_id filter: {}", requestBean.getString("batch_id"));
+        }
+
+        // Add module filter (optional) - applies to both single and paginated modes
+        if (requestBean.containsKey("module") && !requestBean.getString("module").trim().isEmpty()) {
+            queryBuilder.append(" AND UPPER(module) = UPPER(?)");
+            countQueryBuilder.append(" AND UPPER(module) = UPPER(?)");
+            parameters.add(requestBean.getString("module").trim());
+            LOG.info("Adding module filter: {}", requestBean.getString("module"));
         }
 
         // Handle date range filters - filter on CREATION_DATE column instead of retrial date columns
@@ -323,7 +341,7 @@ public class PostingRetrialDbHelper {
                 String currentSno = rs.getString("sno");
                 LOG.debug("DEBUG: Processing record {}: sno={}, batch_id={}", rowCount, currentSno, currentBatchId);
 
-                // Handle all columns with null safety
+                // Handle all 16 columns with null safety (added module)
                 jsonBuilder.add("sno", rs.getString("sno") != null ? rs.getString("sno") : "");
                 jsonBuilder.add("service_type", rs.getString("service_type") != null ? rs.getString("service_type") : "");
                 jsonBuilder.add("retrial_start_date", rs.getString("retrial_start_date") != null ? rs.getString("retrial_start_date") : "");
@@ -339,6 +357,7 @@ public class PostingRetrialDbHelper {
                 jsonBuilder.add("posting_resp_flg", rs.getString("posting_resp_flg") != null ? rs.getString("posting_resp_flg") : "");
                 jsonBuilder.add("posting_resp_code", rs.getString("posting_resp_code") != null ? rs.getString("posting_resp_code") : "");
                 jsonBuilder.add("posting_retrial_count", rs.getString("posting_retrial_count") != null ? rs.getString("posting_retrial_count") : "");
+                jsonBuilder.add("module", rs.getString("module") != null ? rs.getString("module") : "");  // Added module field
 
                 jsonArrayBuilder.add(jsonBuilder.build());
             }

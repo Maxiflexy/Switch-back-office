@@ -16,13 +16,15 @@ import javax.json.JsonObject;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
 
 public class PendingTransactionService implements RequestExecutor {
 
     final static Logger LOG = LogManager.getLogger(PendingTransactionService.class);
 
-    // Define date formatter for validation only
     private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final List<String> VALID_MODULE_TYPES = Arrays.asList("INFLOW", "OUTFLOW", "AIRTIME");
 
     @Override
     public String execute(String request, String currentUser, String actionId) {
@@ -37,6 +39,7 @@ public class PendingTransactionService implements RequestExecutor {
                 requestBean.setString("start_date", JsonUtil.getJsonObjValue2(jsonRequest, "start_date"));
                 requestBean.setString("end_date", JsonUtil.getJsonObjValue2(jsonRequest, "end_date"));
                 requestBean.setString("request_type", JsonUtil.getJsonObjValue2(jsonRequest, "request_type"));
+                requestBean.setString("module_type", JsonUtil.getJsonObjValue2(jsonRequest, "module_type"));
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
             }
@@ -45,6 +48,17 @@ public class PendingTransactionService implements RequestExecutor {
             if (requestBean.getString("batch_id") == null || requestBean.getString("batch_id").trim().isEmpty()) {
                 return createErrorResponse("400", "batch_id parameter is required");
             }
+
+            // Validate module_type parameter (required)
+            if (requestBean.getString("module_type") == null || requestBean.getString("module_type").trim().isEmpty()) {
+                return createErrorResponse("400", "module_type parameter is required");
+            }
+
+            String moduleType = requestBean.getString("module_type").trim().toUpperCase();
+            if (!VALID_MODULE_TYPES.contains(moduleType)) {
+                return createErrorResponse("400", "Invalid module_type. Must be one of: " + String.join(", ", VALID_MODULE_TYPES));
+            }
+            requestBean.setString("module_type", moduleType);
 
             // Validate batch_id format (must be a valid number for NUMBER(28,0) column)
             try {
@@ -56,8 +70,9 @@ public class PendingTransactionService implements RequestExecutor {
             // Validate tran_ref parameter (optional)
             if (requestBean.getString("tran_ref") != null && !requestBean.getString("tran_ref").trim().isEmpty()) {
                 String tranRef = requestBean.getString("tran_ref").trim();
-                if (tranRef.length() > 100) {
-                    return createErrorResponse("400", "tran_ref parameter cannot exceed 100 characters");
+                int maxLength = getMaxTranRefLength(moduleType);
+                if (tranRef.length() > maxLength) {
+                    return createErrorResponse("400", "tran_ref parameter cannot exceed " + maxLength + " characters for " + moduleType);
                 }
                 LOG.info("Transaction reference parameter provided: {}", tranRef);
             }
@@ -110,7 +125,8 @@ public class PendingTransactionService implements RequestExecutor {
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching pending transactions for batch_id: {}, tran_ref: {}, start_date: {}, end_date: {}, request_type: {}",
+            LOG.info("Fetching pending transactions for module_type: {}, batch_id: {}, tran_ref: {}, start_date: {}, end_date: {}, request_type: {}",
+                    moduleType,
                     requestBean.getString("batch_id"),
                     requestBean.getString("tran_ref"),
                     requestBean.getString("start_date"),
@@ -151,6 +167,21 @@ public class PendingTransactionService implements RequestExecutor {
             );
 
             return createErrorResponse("500", "Internal server error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get maximum length for tran_ref based on module type
+     */
+    private int getMaxTranRefLength(String moduleType) {
+        switch (moduleType) {
+            case "INFLOW":
+            case "OUTFLOW":
+                return 100; // PAYMENTREFERENCE is VARCHAR2(100)
+            case "AIRTIME":
+                return 30;  // TOPUP_REF_ID is VARCHAR2(50)
+            default:
+                return 100; // Default
         }
     }
 

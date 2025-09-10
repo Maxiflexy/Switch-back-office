@@ -1,0 +1,37 @@
+package messaging.fileUtils.messaging;
+
+import messaging.fileUtils.messaging.fileUtils.Reader;
+import messaging.fileUtils.util.BaseBean;
+
+import javax.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
+public interface FileValidator extends PersistData {
+
+    boolean validateFileHeader(InputStream header, BaseBean validationBean);
+
+     default boolean validateFileHeader(String[] inputHeader, String[] fileHeader, Reader reader) {
+        return reader.validateHeader(inputHeader, fileHeader);
+    }
+
+    boolean validateFileBody(InputStream body, BaseBean validationBean);
+
+    boolean validateFileBodyWithReader(InputStream body, BaseBean validationBean);
+
+    Map<String, Object> fetchData();
+
+    default boolean validateFile(Part requestFile, BaseBean validationBean, Reader reader) {
+        try {
+//            return (validateFileHeader(requestFile.getInputStream(), validationBean) && validateFileBody(requestFile.getInputStream(), validationBean));
+            return validateFileBodyWithReader(requestFile.getInputStream(), validationBean);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
+}

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 
+
 public class RetrialService extends Common implements RequestExecutor {
 
 
@@ -21,9 +22,7 @@ public class RetrialService extends Common implements RequestExecutor {
         BaseBean requestBean = new BaseBean();
         String batchId = generateBatchId();
         String requestString = validateRequestBody(request, requestBean);
-
         JsonObject jsonObject = JsonUtil.toJsonObject(request);
-        System.out.println(jsonObject.toString());
 
         requestBean.setString("batch_id", batchId);
         requestBean.setString("created_by", currentUser);
@@ -33,9 +32,17 @@ public class RetrialService extends Common implements RequestExecutor {
         }
 
         boolean recordSaved = false;
-        if (DBHelper.writeToRetrialTable(requestBean)) {
-            recordSaved = true;
+        String module = requestBean.getString("module");
+        if (module.equalsIgnoreCase("inflow")) {
+            recordSaved = DBHelper.writeInflowToRetrialTable(requestBean);
+        } else if (module.equalsIgnoreCase("outflow")) {
+            recordSaved = DBHelper.writeToRetrialTableOutflow(requestBean);
+        } else if (module.equalsIgnoreCase("airtime")) {
+            recordSaved = DBHelper.writeToRetrialTableAirtime(requestBean);
         }
+//        if (DBHelper.writeToRetrialTable(requestBean)) {
+//            recordSaved = true;
+//        }
 
         return createReply(requestBean, recordSaved);
     }
@@ -49,14 +56,14 @@ public class RetrialService extends Common implements RequestExecutor {
             validateParameter(authRequest, requestBean, "service_type");
             validateParameter(authRequest, requestBean, "start_date");
             validateParameter(authRequest, requestBean, "end_date");
-//            validateDateRange(requestBean.getString("start_date"), requestBean.getString("end_date"));
+            validateParameter(authRequest, requestBean, "switch_type");
+            validateParameter(authRequest, requestBean, "module");
+            validateDateRange(requestBean.getString("start_date"), requestBean.getString("end_date"));
 
         } catch (Exception Ex) {
-            if (requestBean.getString("service_type").isEmpty() || requestBean.getString("start_date").isEmpty()
-                    || requestBean.getString("end_date").isEmpty()) {
                 requestBean.setString("validationcode", "01");
-                requestBean.setString("message", "Bad request");
-            }
+                requestBean.setString("statusCode", "400");
+                requestBean.setString("message", Ex.getMessage());
         }
         return request;
     }

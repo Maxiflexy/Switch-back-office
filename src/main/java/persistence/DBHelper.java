@@ -12,7 +12,6 @@ import java.util.List;
 
 import static constants.AppConstants.Constants.APP_CODE;
 import static constants.AppConstants.DbTables.*;
-import static constants.AppConstants.DbTables.TOKEN;
 
 
 public class DBHelper {
@@ -20,7 +19,7 @@ public class DBHelper {
     final static Logger LOG = LogManager.getLogger(DBHelper.class);
 
 
-    public static void insertUserIntoDB(BaseBean requestBean) {
+    public static boolean insertUserIntoDB(BaseBean requestBean) {
 
         Connection cnn = ConnectionUtil.getConnection();
 
@@ -61,7 +60,8 @@ public class DBHelper {
 
                 }
             } catch (SQLIntegrityConstraintViolationException ex) {
-                LOG.error("Constraint violated: " + ex.getMessage());
+                LOG.error("User already present: " + ex.getMessage());
+                LOG.error("Updating user login time: " + ex.getMessage());
                 success = updateUserTime(requestBean);
 
             } catch (Exception e) {
@@ -89,6 +89,7 @@ public class DBHelper {
             ConnectionUtil.closeConnection(cnn);
 
         }
+        return success;
     }
 
     private static boolean updateUserTime(BaseBean requestBean) {
@@ -281,7 +282,7 @@ public class DBHelper {
     private static void getAllUsersCount(BaseBean requestBean, Connection cnn) {
         String query = "SELECT COUNT(id) as count FROM "
                 .concat(USERS_TABLE)
-                .concat("u where u.app_code = ?");
+                .concat(" u where u.app_code = ?");
         PreparedStatement ps = null;
         LOG.info("Query: " + query);
 
@@ -1060,7 +1061,7 @@ public class DBHelper {
             ps = cnn.prepareStatement(query);
             ps.setString(++kk, requestBean.getString("firstName"));
             ps.setString(++kk, requestBean.getString("lastName"));
-            ps.setString(++kk, requestBean.getString("email"));
+            ps.setString(++kk, requestBean.getString("email").toLowerCase());
             ps.setString(++kk, requestBean.getString("role"));
             ps.setString(++kk, requestBean.getString("logged_user"));
             ps.setString(++kk, APP_CODE);
@@ -1265,20 +1266,25 @@ public class DBHelper {
                 }
                 ps = null;
             }
-
             ConnectionUtil.closeConnection(cnn);
-
         }
         return response;
     }
 
 
-    public static boolean writeToRetrialTable(BaseBean requestBean) {
+    public static boolean writeInflowToRetrialTable(BaseBean requestBean) {
         Connection cnn = ConnectionUtil.getConnection();
-        String countQuery = getServiceType_Query(requestBean.get("service_type"));
-        String query = "INSERT INTO ESBUSER.POSTING_RETRIAL"
-                .concat(" (batch_count, service_type, retrial_start_date, retrial_end_date, batch_id, created_by, creation_date, status) " +
-                        "select count(TranID), ?, TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), ?, ?, SYSDATE, ? ").concat(countQuery);
+
+        String countSubQuery = getServiceType_Query(requestBean.get("service_type"));
+        String query = "INSERT INTO ESBUSER.POSTING_RETRIAL " +
+                "(batch_count, service_type, retrial_start_date, retrial_end_date, batch_id, created_by, creation_date, status, switch_type, module) " +
+                "SELECT (" +
+                "SELECT COUNT(TranID) " + countSubQuery +
+                ") AS batch_count, " +
+                "? AS service_type, TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AS retrial_start_date, " +
+                "TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AS retrial_end_date, " +
+                "? AS batch_id, ? AS created_by, SYSDATE AS creation_date, " +
+                "? AS status, ? AS switch_type, ? AS module FROM dual";
 
         PreparedStatement ps = null;
         boolean success = false;
@@ -1287,20 +1293,22 @@ public class DBHelper {
             int kk = 0;
             cnn.setAutoCommit(false);
             ps = cnn.prepareStatement(query);
+            ps.setString(++kk, "FTSingleCreditRequest");
+            ps.setString(++kk, "00");
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
             ps.setString(++kk, requestBean.getString("service_type"));
             ps.setString(++kk, requestBean.getString("start_date"));
             ps.setString(++kk, requestBean.getString("end_date"));
             ps.setString(++kk, requestBean.getString("batch_id"));
             ps.setString(++kk, requestBean.getString("created_by"));
             ps.setString(++kk, "PENDING");
-            ps.setString(++kk, "FTSingleCreditRequest");
-            ps.setString(++kk, "00");
-            ps.setString(++kk, requestBean.getString("start_date"));
-            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, requestBean.getString("switch_type"));
+            ps.setString(++kk, requestBean.getString("module"));
 
             try {
                 if (ps.executeUpdate() > 0) {
-                    LOG.info("writing to posting retrial succeeded");
+                    LOG.info("writing to posting retrial inflow succeeded");
                     success = writeToInflw_V2Table(requestBean, cnn);
                 }
 
@@ -1348,6 +1356,7 @@ public class DBHelper {
                         "AND TSQ_2_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') " +
                         "AND (C24_RSP_FLG = 'N' OR C24_RSP_CODE NOT IN ('000','913')) " +
                         "AND TXN_POSTING_FALLBACK_FLG = 'N' " +
+                        "AND CLIENTNAME = ? " +
                         "AND TRANID > 0)";
             } else if ("TSQ".equals(serviceType)) {
                 query += "WHERE TRANTYPE = ? " +
@@ -1355,6 +1364,7 @@ public class DBHelper {
                         "AND RESPONSEDATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') " +
                         "AND (TSQ_2_FLG = 'N' OR TSQ_2_RSP_CODE IN ('97', '99','25')) " +
                         "AND TSQ_FALLBACK_FLG = 'N' " +
+                        "AND CLIENTNAME = ? " +
                         "AND TRANID > 0)";
             } else {
                 requestBean.setString("message", "Invalid service type provided.");
@@ -1371,6 +1381,7 @@ public class DBHelper {
             ps.setString(paramIndex++, "00");
             ps.setString(paramIndex++, requestBean.getString("start_date"));
             ps.setString(paramIndex++, requestBean.getString("end_date"));
+            ps.setString(paramIndex++, requestBean.getString("switch_type").toUpperCase());
 
             ps.executeUpdate();
             response = true;
@@ -1399,19 +1410,202 @@ public class DBHelper {
         if (serviceType.equalsIgnoreCase("POSTING")) {
             query = "from esbuser.nip_in_flw_v2 where  TRANTYPE=? and tsq_2_rsp_code =? " +
                     "and tsq_2_date between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (c24_rsp_flg='N' OR c24_rsp_code NOT IN ('000','913')) " +
-                    "and txn_posting_fallback_flg='N' and tranid > 0 order by tranid asc";
+                    "and txn_posting_fallback_flg='N' and tranid > 0";
         }
 
         if (serviceType.equalsIgnoreCase("TSQ")) {
             query = "from esbuser.nip_in_flw_v2 where  trantype=? and responsecode =? " +
                     "and responsedate between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (tsq_2_flg='N' OR tsq_2_rsp_code in ('97', '99','25')) " +
-                    "and tsq_fallback_flg='N' and TranID > 0 order by TranID asc";
+                    "and tsq_fallback_flg='N' and TranID > 0";
         }
-
         return query;
     }
 
 
+    public static boolean writeToRetrialTableOutflow(BaseBean requestBean) {
+        String query = "INSERT INTO "
+                .concat(POSTING_RETRIAL)
+                .concat("(batch_count, service_type, retrial_start_date, retrial_end_date, batch_id, created_by, creation_date, status, switch_type, module) VALUES ")
+                .concat(" (?, ?, TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), ?, ?, sysdate, ?, ?, ? )");
+        requestBean.setString("operation_type", requestBean.getString("service_type"));
+        TransactionsDbHelper.fetchTotalOutflowRecordCount(requestBean);
+        String count = requestBean.getString("total_count");
+        LOG.info("Outflow count: {}", count);
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+        boolean success = false;
+        LOG.info("Writitng to Outflow retrial Table: {}", query);
+        try {
+            int kk = 0;
+            cnn.setAutoCommit(false);
+            ps = cnn.prepareStatement(query);
+            ps.setString(++kk, count);
+            ps.setString(++kk, requestBean.getString("service_type"));
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, requestBean.getString("batch_id"));
+            ps.setString(++kk, requestBean.getString("created_by"));
+            ps.setString(++kk, "PENDING");
+            ps.setString(++kk, requestBean.getString("switch_type"));
+            ps.setString(++kk, requestBean.getString("module"));
 
+            try {
+                if (ps.executeUpdate() > 0) {
+                    LOG.info("writing to posting retrial  outflow succeeded");
+                    success = updateOutflowServiceTable(requestBean, cnn);
+                }
 
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+
+            ConnectionUtil.closeConnection(cnn);
+
+        }
+        return success;
+    }
+
+    private static boolean updateOutflowServiceTable(BaseBean requestBean, Connection cnn) {
+        PreparedStatement ps = null;
+        boolean response = false;
+
+        try {
+            String query = "UPDATE "
+                    .concat(UP_OUTFLOW_TRANSACTION)
+                    .concat(" SET BATCH_ID = ?  WHERE sessionid IN (SELECT sessionid  ")
+                    .concat(TransactionsDbHelper.createPendingOutflowTransactionQuery(requestBean))
+                    .concat(" )");
+
+            LOG.info("Query: {}", query);
+            ps = cnn.prepareStatement(query);
+            int paramIndex = 1;
+            ps.setString(paramIndex++, requestBean.getString("batch_id"));
+            ps.setString(paramIndex++, requestBean.getString("start_date"));
+            ps.setString(paramIndex++, requestBean.getString("end_date"));
+            ps.executeUpdate();
+            response = true;
+            requestBean.setString("message", "Batch Created.");
+            cnn.commit();
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("Error updating Outflow table", e);
+            try {
+                if (cnn != null) cnn.rollback();
+            } catch (SQLException rollbackEx) {
+                LOG.error("Rollback failed", rollbackEx);
+            }
+
+        }
+
+        return response;
+    }
+
+    public static boolean writeToRetrialTableAirtime(BaseBean requestBean) {
+        String query = "INSERT INTO "
+                .concat(POSTING_RETRIAL)
+                .concat("(batch_count, service_type, retrial_start_date, retrial_end_date, batch_id, created_by, creation_date, status, switch_type, module) VALUES ")
+                .concat(" (?, ?, TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS'), ?, ?, sysdate, ?, ?, ? )");
+        requestBean.setString("operation_type", requestBean.getString("service_type"));
+        TransactionsDbHelper.fetchAirtimeTotalRecordCount(requestBean);
+        String count = requestBean.getString("total_count");
+
+        LOG.info("Airtime count: {}", count);
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+        boolean success = false;
+        LOG.info("Writitng to Airitme retrial Table: {}", query);
+        try {
+            int kk = 0;
+            cnn.setAutoCommit(false);
+            ps = cnn.prepareStatement(query);
+            ps.setString(++kk, count);
+            ps.setString(++kk, requestBean.getString("service_type"));
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+            ps.setString(++kk, requestBean.getString("batch_id"));
+            ps.setString(++kk, requestBean.getString("created_by"));
+            ps.setString(++kk, "PENDING");
+            ps.setString(++kk, requestBean.getString("switch_type"));
+            ps.setString(++kk, requestBean.getString("module"));
+
+            try {
+                if (ps.executeUpdate() > 0) {
+                    LOG.info("writing to posting airtime  outflow succeeded");
+                    success = updateAirtimeServiceTable(requestBean, cnn);
+                }
+
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+        return success;
+    }
+
+    private static boolean updateAirtimeServiceTable(BaseBean requestBean, Connection cnn) {
+        PreparedStatement ps = null;
+        boolean response = false;
+
+        try {
+            String query = "UPDATE "
+                    .concat(AIRTIME_TABLE)
+                    .concat(" SET BATCH_ID = ? WHERE TOPUP_REF_ID IN (SELECT TOPUP_REF_ID  ")
+                    .concat(TransactionsDbHelper.createPendingAirtimeTransactionQuery(requestBean))
+                    .concat(" )");
+
+            LOG.info("Query: {}", query);
+            ps = cnn.prepareStatement(query);
+            int paramIndex = 1;
+            ps.setString(paramIndex++, requestBean.getString("batch_id"));
+            ps.setString(paramIndex++, requestBean.getString("start_date"));
+            ps.setString(paramIndex++, requestBean.getString("end_date"));
+            ps.executeUpdate();
+            response = true;
+            requestBean.setString("message", "Batch Created.");
+            cnn.commit();
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("Error updating Airtime table", e);
+            try {
+                if (cnn != null) cnn.rollback();
+            } catch (SQLException rollbackEx) {
+                LOG.error("Rollback failed", rollbackEx);
+            }
+
+        }
+
+        return response;
+    }
 }

@@ -19,11 +19,17 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import static util.CustomUtil.getPrivateKey;
 import static util.CustomUtil.getPublicKey;
 
 public class RequestValidator extends ValidatorUtils {
+
+//    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+
 
     public static boolean validateIPAddress(String ip) {
         InetAddressValidator validator = InetAddressValidator.getInstance();
@@ -133,6 +139,19 @@ public class RequestValidator extends ValidatorUtils {
         }
 
     }
+    public void validateOptionalDateParameter(JsonObject request, BaseBean requestBean, String parameter, DateTimeFormatter format) throws IOException {
+        if (request.containsKey(parameter)) {
+            try {
+                LocalDateTime.parse(request.getString(parameter), format);
+                requestBean.setString(parameter, request.getString(parameter));
+            } catch (Exception ex) {
+                requestBean.setString("message", ex.getMessage());
+                throw new IOException(requestBean.get("message"));
+
+            }
+        }
+
+    }
 
     public void validateOptionalParameter(JsonObject request, BaseBean requestBean, String parameter, boolean isString) {
         try {
@@ -207,4 +226,32 @@ public class RequestValidator extends ValidatorUtils {
             throw new CustomException(requestBean);
         }
     }
+
+
+
+    public static void validateDateRange(String startDateStr, String endDateStr) throws IOException {
+        try {
+            LocalDateTime startDate = LocalDateTime.parse(startDateStr, FORMATTER);
+            LocalDateTime endDate = LocalDateTime.parse(endDateStr, FORMATTER);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime sevenDaysAgo = now.minusDays(6).withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+            if (startDate.isBefore(sevenDaysAgo) || startDate.isAfter(now)) {
+                throw new IOException("Start date must be within the last 7 days and not in the future.");
+            }
+
+            if (endDate.isAfter(now)) {
+                throw new IOException("End date must not be in the future.");
+            }
+
+            if (startDate.isAfter(endDate)) {
+                throw new IOException("Start date must not be after end date.");
+            }
+
+        } catch (DateTimeParseException e) {
+            throw new IOException("Invalid date format. Expected format: yyyy-MM-ddTHH:mm:ss");
+        }
+    }
+
+
 }

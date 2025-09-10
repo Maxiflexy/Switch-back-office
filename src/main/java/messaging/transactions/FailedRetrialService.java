@@ -42,6 +42,9 @@ public class FailedRetrialService implements RequestExecutor {
                 // Add batch_id parameter (optional)
                 requestBean.setString("batch_id", JsonUtil.getJsonObjValue2(jsonRequest, "batch_id"));
 
+                // Add module parameter (optional)
+                requestBean.setString("module", JsonUtil.getJsonObjValue2(jsonRequest, "module"));
+
                 requestBean.setString("page", JsonUtil.getJsonObjValue2(jsonRequest, "page"));
                 requestBean.setString("size", JsonUtil.getJsonObjValue2(jsonRequest, "size"));
             }
@@ -122,12 +125,13 @@ public class FailedRetrialService implements RequestExecutor {
             requestBean.setString("current_user", currentUser);
             requestBean.setString("action_id", actionId);
 
-            LOG.info("Fetching failed retrial requests for service_type: {}, status: {}, start_date: {}, end_date: {}, batch_id: {}",
+            LOG.info("Fetching failed retrial requests for service_type: {}, status: {}, start_date: {}, end_date: {}, batch_id: {}, module: {}",
                     requestBean.getString("service_type"),
                     requestBean.getString("request_status"),
                     requestBean.getString("retrial_start_date"),
                     requestBean.getString("retrial_end_date"),
-                    requestBean.getString("batch_id"));
+                    requestBean.getString("batch_id"),
+                    requestBean.getString("module"));
 
             // Call the database helper (database will handle TIMESTAMP conversion)
             boolean success = PostingRetrialDbHelper.getFailedRetrialRequests(requestBean);
@@ -217,7 +221,7 @@ public class FailedRetrialService implements RequestExecutor {
                 JsonObject item = dataArray.getJsonObject(i);
 
                 if (hasBatchId) {
-                    // Single record mode - return all 19 columns
+                    // Single record mode - return all 20 columns (added module)
                     JsonObject responseItem = Json.createObjectBuilder()
                             .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
                             .add("service_type", JsonUtil.getJsonObjValue2(item, "service_type"))
@@ -238,10 +242,11 @@ public class FailedRetrialService implements RequestExecutor {
                             .add("updated_date", JsonUtil.getJsonObjValue2(item, "updated_date"))
                             .add("approval_message", JsonUtil.getJsonObjValue2(item, "approval_message"))
                             .add("switch_type", JsonUtil.getJsonObjValue2(item, "switch_type"))
+                            .add("module", JsonUtil.getJsonObjValue2(item, "module"))  // Added module field
                             .build();
                     responseDataBuilder.add(responseItem);
                 } else {
-                    // Paginated mode - return existing 15 columns
+                    // Paginated mode - return existing 16 columns (added module)
                     JsonObject responseItem = Json.createObjectBuilder()
                             .add("batch_id", JsonUtil.getJsonObjValue2(item, "batch_id"))
                             .add("batch_count", JsonUtil.getJsonObjValue2(item, "batch_count"))
@@ -258,6 +263,7 @@ public class FailedRetrialService implements RequestExecutor {
                             .add("posting_resp_code", JsonUtil.getJsonObjValue2(item, "posting_resp_code"))
                             .add("posting_retrial_count", JsonUtil.getJsonObjValue2(item, "posting_retrial_count"))
                             .add("sno", JsonUtil.getJsonObjValue2(item, "sno"))
+                            .add("module", JsonUtil.getJsonObjValue2(item, "module"))  // Added module field
                             .build();
                     responseDataBuilder.add(responseItem);
                 }

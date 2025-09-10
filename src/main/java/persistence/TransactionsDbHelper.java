@@ -540,11 +540,292 @@ public class TransactionsDbHelper {
         if (requestBean.getString("operation_type").equalsIgnoreCase("posting")) {
             query.append(" from ")
                     .append(NIP_INFLOW_TRANSACTION)
-                    .append(" where TRANTYPE=? and tsq_2_rsp_code =? and tsq_2_date between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (c24_rsp_flg='N' OR c24_rsp_code NOT IN ('000','913')) and txn_posting_fallback_flg='N' and tranid > ? order by tranid asc");
+                    .append(" where TRANTYPE=? and tsq_2_rsp_code =? and tsq_2_date between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (c24_rsp_flg='N' OR c24_rsp_code NOT IN ('000','913')) and txn_posting_fallback_flg='N' and tranid > ? ");
         } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
             query.append(" from ")
                     .append(NIP_INFLOW_TRANSACTION)
-                    .append(" where trantype= ? and responsecode = ? and responsedate between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (tsq_2_flg='N' OR tsq_2_rsp_code in ('97', '99','25')) and tsq_fallback_flg='N' and TranID > ? order by TranID asc");
+                    .append(" where trantype= ? and responsecode = ? and responsedate between TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') and (tsq_2_flg='N' OR tsq_2_rsp_code in ('97', '99','25')) and tsq_fallback_flg='N' and TranID > ? ");
+        }
+        if (!requestBean.getString("switch").isEmpty()) {
+            query.append(" and clientname = ").append(requestBean.getString("switch").equalsIgnoreCase("nip") ? "NIBSS" : "ETZ");
+        }
+
+        query.append(" order by TranID asc");
+        return query.toString();
+    }
+
+    public static boolean fetchPendingOutflowTransactions(BaseBean requestBean) {
+        if (requestBean.getString("size").isEmpty()) {
+            requestBean.setString("size", "10");
+        }
+        if (requestBean.getString("page").isEmpty()) {
+            requestBean.setString("page", "1");
+        }
+
+        String limit = requestBean.getString("size");
+        String offset = String.valueOf((Integer.parseInt(requestBean.getString("page")) - 1) * Integer.parseInt(limit));
+        String query = "SELECT requestdate, sessionid,  amount".concat(createPendingOutflowTransactionQuery(requestBean));
+        query = query.concat(" OFFSET ").concat(offset).concat(" ROWS FETCH NEXT ").concat(limit).concat(" ROWS ONLY");
+
+        boolean success = false;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching uploaded files {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingOutflowStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                List<BaseBean> transactions = new ArrayList<>();
+                while (rs.next()) {
+                    BaseBean documentBean = new BaseBean();
+                    try {
+                        documentBean.put("tran_ref", rs.getString("sessionid"));
+                        documentBean.put("tran_date", rs.getString("requestdate"));
+                        documentBean.put("tran_amt", rs.getString("amount"));
+                        transactions.add(documentBean);
+                    } catch (Exception e) {
+                        LOG.error(e);
+                    }
+                }
+                requestBean.setString("jsonBean", JsonUtil.convertBaseBeanListToJsonString(transactions));
+                fetchTotalOutflowRecordCount(requestBean);
+                success = true;
+            } catch (SQLException e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+                e.printStackTrace();
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+        return success;
+    }
+
+    public static void fetchTotalOutflowRecordCount(BaseBean requestBean) {
+        String query = "SELECT COUNT(*) as count".concat(createPendingOutflowTransactionQuery(requestBean));
+
+        boolean success = false;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching Outflow transaction count {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingOutflowStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    requestBean.setString("total_count", rs.getString("count"));
+                }
+                success = true;
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+
+        } catch (SQLException e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+    }
+
+    private static void createPendingOutflowStatementVariables(PreparedStatement ps, BaseBean requestBean) throws SQLException {
+        int kk = 0;
+        if (requestBean.getString("operation_type").equalsIgnoreCase("reversal")) {
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+        }
+    }
+
+    public static String createPendingOutflowTransactionQuery(BaseBean requestBean) {
+        StringBuilder query =  new StringBuilder();
+        if (requestBean.getString("operation_type").equalsIgnoreCase("reversal")) {
+            query.append(" FROM ")
+                    .append(UP_OUTFLOW_TRANSACTION)
+//                    SWITCH FAILED AND TSQ FAILED AND (REVERSAL FAILED OR NO REVERSAL)
+                    .append(" WHERE ( DEBIT_RSP_CODE = '911' OR (DEBIT_RSP_CODE = '000' AND (its_rsp_code NOT IN ('00','09', '99', '25', '26', '94', '01') OR its_tsq_rsp_code NOT IN ('00', '09', '99', '25', '94', '01')) AND ((REVERSAL_RSP_CODE NOT IN ('000','913') and REVERSAL_FLG='Y') OR REVERSAL_FLG='N')))")
+                    .append(" AND DEBIT_RSP_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            query.append(" FROM ")
+                    .append(UP_OUTFLOW_TRANSACTION)
+//                    DEBIT SUCCESSFUL AND SWITCH SUCCESSFULL OR NO RESPONSE FROM TSQ)
+                    .append(" WHERE  DEBIT_RSP_CODE IN ('000') AND ((its_rsp_code IN ('09', '99', '25', '26', '94', '01')) AND ((its_tsq_flg = 'N') OR (its_tsq_rsp_code IN ('09', '99', '25', '94', '01'))))  ")
+                    .append(" AND DEBIT_RSP_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+        } else {
+            throw new IllegalArgumentException("Unsupported operation type: " + requestBean.getString("operation_type"));
+        }
+        return query.toString();
+    }
+
+    public static boolean fetchPendingAirtimeTransactions(BaseBean requestBean) {
+        if (requestBean.getString("size").isEmpty()) {
+            requestBean.setString("size", "10");
+        }
+        if (requestBean.getString("page").isEmpty()) {
+            requestBean.setString("page", "1");
+        }
+
+        String limit = requestBean.getString("size");
+        String offset = String.valueOf((Integer.parseInt(requestBean.getString("page")) - 1) * Integer.parseInt(limit));
+        String query = "SELECT entrydate as requestdate, TOPUP_REF_ID as sessionid,  txnamt as amount".concat(createPendingAirtimeTransactionQuery(requestBean));
+        query = query.concat(" OFFSET ").concat(offset).concat(" ROWS FETCH NEXT ").concat(limit).concat(" ROWS ONLY");
+
+        boolean success = false;
+
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching Airtime pending trans- query: {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingAirtimeStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                List<BaseBean> transactions = new ArrayList<>();
+                while (rs.next()) {
+                    BaseBean documentBean = new BaseBean();
+                    try {
+                        documentBean.put("tran_ref", rs.getString("sessionid"));
+                        documentBean.put("tran_date", rs.getString("requestdate"));
+                        documentBean.put("tran_amt", rs.getString("amount"));
+                        transactions.add(documentBean);
+                    } catch (Exception e) {
+                        LOG.error(e);
+                    }
+                }
+                requestBean.setString("jsonBean", JsonUtil.convertBaseBeanListToJsonString(transactions));
+                fetchAirtimeTotalRecordCount(requestBean);
+                success = true;
+            } catch (SQLException e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+        return success;
+    }
+
+    public static void fetchAirtimeTotalRecordCount(BaseBean requestBean) {
+        String query = "SELECT COUNT(*) as count".concat(createPendingAirtimeTransactionQuery(requestBean));
+
+        boolean success = false;
+        Connection cnn = ConnectionUtil.getConnection();
+        PreparedStatement ps = null;
+
+
+        LOG.info("Fetching Airtime transaction count {}", query);
+
+        try {
+            ps = cnn.prepareStatement(query);
+            createPendingAirtimeStatementVariables(ps, requestBean);
+            try {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    requestBean.setString("total_count", rs.getString("count"));
+                }
+                success = true;
+            } catch (Exception e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+
+
+        } catch (SQLException e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+
+        } finally {
+
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+            ConnectionUtil.closeConnection(cnn);
+        }
+    }
+
+    private static void createPendingAirtimeStatementVariables(PreparedStatement ps, BaseBean requestBean) throws SQLException {
+        int kk = 0;
+        if (requestBean.getString("operation_type").equalsIgnoreCase("reversal")) {
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            ps.setString(++kk, requestBean.getString("start_date"));
+            ps.setString(++kk, requestBean.getString("end_date"));
+        }
+    }
+
+    public static String createPendingAirtimeTransactionQuery(BaseBean requestBean) {
+        StringBuilder query =  new StringBuilder();
+        if (requestBean.getString("operation_type").equalsIgnoreCase("reversal")) {
+            query.append(" FROM ")
+                    .append(AIRTIME_TABLE)
+                    .append(" WHERE (topup_rsp_code <> 'SUC' AND topup_rsp_code_2 <> '00') AND ((DEBIT_REVERSAL_RSP_CODE <> '000' AND DEBIT_REVERSAL_RSP_FLG='Y') OR DEBIT_REVERSAL_RSP_FLG='N')" )
+                    .append(" AND DEBIT_RSP_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+        } else if (requestBean.getString("operation_type").equalsIgnoreCase("tsq")) {
+            query.append(" FROM ")
+                    .append(AIRTIME_TABLE)
+                    .append(" WHERE  DEBIT_RSP_CODE IN ('000') AND (topup_rsp_code = 'UNKW' and tsq_rsp_code in ('UNKW', 'QER')) OR ((topup_rsp_code = 'UNKW' or topup_rsp_code is null) and tsq_rsp_code is null) AND tsq_rsp_code <> 'SUC'")
+                    .append(" AND DEBIT_RSP_DATE BETWEEN TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+        } else {
+            throw new IllegalArgumentException("Unsupported operation type: " + requestBean.getString("operation_type"));
         }
         return query.toString();
     }

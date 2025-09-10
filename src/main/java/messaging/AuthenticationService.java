@@ -1,6 +1,8 @@
 package messaging;
 
 import constants.AppConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import persistence.DBHelper;
 import services.executors.Executor;
 import util.*;
@@ -14,19 +16,22 @@ import static util.CustomUtil.getUserDetailsAndPersistUserData;
 
 public class AuthenticationService extends Common implements Executor {
 
+    final static private Logger LOG = LogManager.getLogger(Common.class);
+
+
     @Override
     public String execute(String request) {
         BaseBean requestBean = new BaseBean();
         String requestString = validateRequestBody(request, requestBean);
         if (requestBean.containsKey("validationcode")) {
-            return createReply(requestBean, false);
-        }
-        if (!DBHelper.checkUserDetails(requestBean)) {
             return createReply(requestBean, true);
         }
         requestBean.setString("ad_request", request);
         BaseBean configBean = JsonServiceConfig.getInstance().getProperty("UBA");
         requestBean.setString("private_key", configBean.get("private_key"));
+        if (!DBHelper.checkUserDetails(requestBean)) {
+            return createReply(requestBean, true);
+        }
         boolean status = sendRequest(requestBean, configBean, requestString);
         return createReply(requestBean, status);
     }
@@ -73,25 +78,33 @@ public class AuthenticationService extends Common implements Executor {
                 boolean isError = false;
                 if (env.equals(AppConstants.Constants.LOCAL)) {
                     isError =  validateToken(entrustBean, request);
+                    LOG.info("Token status: {}", isError);
                 } else if (env.equals(AppConstants.Constants.UBA)) {
                     isError = sendRequest(entrustBean, configBean, "");
                 }
 
                 if (!isError && entrustBean.getString("code").equals(ResponseUtil.SUCCESS)) {
                     createJsonToken(requestBean);
-                    getUserDetailsAndPersistUserData(requestBean);
+                    boolean success = getUserDetailsAndPersistUserData(requestBean);
+                    if (!success) {
+                        throw new Exception("Authentication failed");
+                    }
+
                 } else {
                     requestBean.setString("status_type", ResponseUtil.FAIL);
                     requestBean.setString("status_code", ResponseUtil.HTTP_UNAUTHORIZED_STATUS);
+                    requestBean.setString("message", "Entrust authentication failed, please contact admin");
                 }
             } else {
                 requestBean.setString("status_type", ResponseUtil.FAIL);
                 requestBean.setString("status_code", ResponseUtil.HTTP_UNAUTHORIZED_STATUS);
+                requestBean.setString("message", "Active directory authentication failed, please contact admin");
             }
         } catch (Exception ex) {
             requestBean.setString("status_type", ResponseUtil.FAIL);
             requestBean.setString("status_code", ResponseUtil.HTTP_INTERNAL_SERVER_ERROR);
-            ex.printStackTrace();
+            requestBean.setString("message", "Error occurred during authentication, please contact admin");
+            LOG.error(ex.getMessage(), ex);
         }
     }
 
@@ -104,17 +117,23 @@ public class AuthenticationService extends Common implements Executor {
     @Override
     protected String createReply(BaseBean requestBean, Boolean procErr) {
         JsonObject jsonResp = null;
-
         JsonObjectBuilder jObjBuil = Json.createObjectBuilder();
 
 
         if (procErr) {
-
-            requestBean.setString("status_type", ResponseUtil.FAIL);
-            requestBean.setString("status_code", ResponseUtil.GENERIC_PROCESSING_ERROR);
+            if (requestBean.getString("status_type").isEmpty()) {
+                requestBean.setString("status_type", ResponseUtil.FAIL);
+            }
+            if (requestBean.getString("staus_code").isEmpty()) {
+                requestBean.setString("status_code", ResponseUtil.GENERIC_PROCESSING_ERROR);
+            }
+            if (requestBean.getString("mesage").isEmpty()) {
+                requestBean.setString("mesage", "Error authenticating user please contact admin");
+            }
 
         }
         if (requestBean.getString("status_type").equals(ResponseUtil.FAIL)) {
+            jObjBuil.add("message", requestBean.getString("message"));
             jsonResp = jObjBuil.add("status", Json.createObjectBuilder()
                     .add("type", requestBean.getString("status_type"))
                     .add("code", requestBean.getString("status_code"))
@@ -124,6 +143,7 @@ public class AuthenticationService extends Common implements Executor {
 
         JsonObjectBuilder response = Json.createObjectBuilder();
         if (    requestBean.get("x-http-status-code").equals(ResponseUtil.HTTP_OK_STATUS) && requestBean.getString("auth-status").equals("true")) {
+            response.add("message", "Authentication successful");
             response.add("token", requestBean.getString("jwt"))
                     .add("details", Json.createObjectBuilder()
                             .add("username", requestBean.getString("user"))

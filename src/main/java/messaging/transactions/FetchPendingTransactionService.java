@@ -24,7 +24,16 @@ public class FetchPendingTransactionService extends RequestValidator implements 
         requestBean.setString("user", currentUser);
         boolean result = false;
         if (validateRequest(requestBean, request) && !"01".equals(requestBean.getString("validationcode"))) {
-            result = TransactionsDbHelper.fetchPendingInflowTransactions(requestBean);
+            String module = requestBean.getString("module");
+            if(module.equalsIgnoreCase("inflow")) {
+                result = TransactionsDbHelper.fetchPendingInflowTransactions(requestBean);
+            } else if (module.equalsIgnoreCase("outflow")) {
+                result = TransactionsDbHelper.fetchPendingOutflowTransactions(requestBean);
+            } else if (module.equalsIgnoreCase("airtime")) {
+                result = TransactionsDbHelper.fetchPendingAirtimeTransactions(requestBean);
+            } else {
+                requestBean.setString("message", "Invalid module type");
+            }
             LOG.info("Transactions fetched successfully: {}", result);
         }
         return createReply(requestBean, result);
@@ -39,7 +48,10 @@ public class FetchPendingTransactionService extends RequestValidator implements 
             jsonRequest = JsonUtil.toJsonObject(request);
             validateDateParameter(jsonRequest, requestBean, "start_date", format);
             validateDateParameter(jsonRequest, requestBean, "end_date", format);
+            validateOptionalParameter(jsonRequest, requestBean, "page", true);
+            validateOptionalParameter(jsonRequest, requestBean, "size", true);
             validateParameter(jsonRequest, requestBean, "operation_type");
+            validateParameter(jsonRequest, requestBean, "module");
             response = true;
 
         } catch (Exception e) {

@@ -1,0 +1,68 @@
+package messaging.fileUtils.messaging.stats.endpoints;
+
+import messaging.fileUtils.constants.AppConstants;
+import messaging.fileUtils.exceptions.CustomException;
+import messaging.fileUtils.messaging.RequestValidator;
+import messaging.fileUtils.persistence.PerformanceDbHelper;
+import messaging.fileUtils.services.executors.RequestExecutor;
+import messaging.fileUtils.util.BaseBean;
+import messaging.fileUtils.util.CustomUtil;
+import messaging.fileUtils.util.JsonUtil;
+import messaging.fileUtils.util.ResponseUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import java.util.UUID;
+
+public class DeactivateEndpoint extends RequestValidator implements RequestExecutor {
+    final static Logger LOG = LogManager.getLogger(DeactivateEndpoint.class);
+
+    @Override
+    public String execute(String request, String currentUser, String actionId) {
+        BaseBean requestBean = new BaseBean();
+        requestBean.setString("user", currentUser);
+        requestBean.setString("mc-action", AppConstants.AppActions.DEACTIVATE);
+        requestBean.setString("mc-id", UUID.randomUUID().toString());
+        boolean result = false;
+        if (validateRequest(requestBean, request) && !"01".equals(requestBean.getString("validationcode"))) {
+            result = PerformanceDbHelper.createEndpointRequest(requestBean);
+            LOG.info("Endpoint request created successfully: {}", result);
+        }
+        return createReply(requestBean, result);
+    }
+
+    public boolean validateRequest(BaseBean requestBean, String request) {
+        //validate aggregator-name, aggregator-code
+        JsonObject jsonRequest = null;
+        boolean response = false;
+        try {
+            jsonRequest = JsonUtil.toJsonObject(request);
+            validateParameter(jsonRequest, requestBean, "endpoint-id");
+            response = true;
+        } catch (Exception Ex) {
+            if (requestBean.get("message").isEmpty()) {
+                requestBean.setString("validationcode", "01");
+                requestBean.setString("message", "Bad request");
+            }
+        }
+        return response;
+    }
+
+    private String createReply(BaseBean requestBean, boolean error) {
+        JsonObject jsonResp;
+        if (!error) {
+            throw new CustomException(CustomUtil.createErrorBean(requestBean));
+        }
+
+        String message = "Endpoint request submitted, pending approval from admin";
+        jsonResp = Json.createObjectBuilder().add("status", ResponseUtil.SUCCESS)
+                .add("message", message)
+                .add("data", Json.createObjectBuilder()
+                        .add("id", requestBean.getString("mc-id"))
+                        .build())
+                .build();
+        return jsonResp.toString();
+    }
+}

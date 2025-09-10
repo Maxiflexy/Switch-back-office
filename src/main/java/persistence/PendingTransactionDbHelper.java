@@ -21,6 +21,32 @@ public class PendingTransactionDbHelper {
     final static Logger LOG = LogManager.getLogger(PendingTransactionDbHelper.class);
 
     public static boolean getPendingTransactions(BaseBean requestBean) {
+        String moduleType = requestBean.getString("module_type");
+        if (moduleType == null || moduleType.trim().isEmpty()) {
+            LOG.error("module_type parameter is required but not provided");
+            requestBean.setString("message", "module_type parameter is required");
+            return false;
+        }
+
+        // Route to appropriate method based on module type
+        switch (moduleType.toUpperCase()) {
+            case "INFLOW":
+                return getInflowTransactions(requestBean);
+            case "OUTFLOW":
+                return getOutflowTransactions(requestBean);
+            case "AIRTIME":
+                return getAirtimeTransactions(requestBean);
+            default:
+                LOG.error("Invalid module_type: {}", moduleType);
+                requestBean.setString("message", "Invalid module_type. Must be one of: INFLOW, OUTFLOW, AIRTIME");
+                return false;
+        }
+    }
+
+    /**
+     * Get INFLOW transactions from ESBUSER.NIP_IN_FLW_V2 table
+     */
+    private static boolean getInflowTransactions(BaseBean requestBean) {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("SELECT n.PAYMENTREFERENCE, ");
         queryBuilder.append("TO_CHAR(n.REQUESTDATE, 'YYYY-MM-DD HH24:MI:SS') as REQUESTDATE, ");
@@ -34,17 +60,71 @@ public class PendingTransactionDbHelper {
         countQueryBuilder.append("SELECT COUNT(*) as total_count FROM ESBUSER.NIP_IN_FLW_V2 n ");
         countQueryBuilder.append("WHERE 1=1");
 
+        return executeTransactionQuery(requestBean, queryBuilder, countQueryBuilder, "INFLOW",
+                "PAYMENTREFERENCE", "REQUESTDATE", "ACCOUNTNUMBER", "AMOUNT", "BATCH_ID", "NARRATION", "C24_RSP_CODE");
+    }
+
+    /**
+     * Get OUTFLOW transactions from ESBUSER.IBT_OUT_FLW table
+     */
+    private static boolean getOutflowTransactions(BaseBean requestBean) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT n.PAYMENTREFERENCE, ");
+        queryBuilder.append("TO_CHAR(n.REQUESTDATE, 'YYYY-MM-DD HH24:MI:SS') as REQUESTDATE, ");
+        queryBuilder.append("n.BENEFICIARYACCOUNTNUMBER, n.AMOUNT, n.BATCH_ID, n.NARRATION, ");
+        queryBuilder.append("n.TSQ_2_RSP_CODE, COALESCE(b.ERR_DESC, '') as ERR_DESC ");
+        queryBuilder.append("FROM ESBUSER.IBT_OUT_FLW n ");
+        queryBuilder.append("LEFT JOIN ESBUSER.BANCS_CONNECT_RESPONSE b ON n.TSQ_2_RSP_CODE = b.ERR_CODE ");
+        queryBuilder.append("WHERE 1=1");
+
+        StringBuilder countQueryBuilder = new StringBuilder();
+        countQueryBuilder.append("SELECT COUNT(*) as total_count FROM ESBUSER.IBT_OUT_FLW n ");
+        countQueryBuilder.append("WHERE 1=1");
+
+        return executeTransactionQuery(requestBean, queryBuilder, countQueryBuilder, "OUTFLOW",
+                "PAYMENTREFERENCE", "REQUESTDATE", "BENEFICIARYACCOUNTNUMBER", "AMOUNT", "BATCH_ID", "NARRATION", "TSQ_2_RSP_CODE");
+    }
+
+    /**
+     * Get AIRTIME transactions from ESBUSER.CHL_AIRTIMETOPUP_3 table
+     */
+    private static boolean getAirtimeTransactions(BaseBean requestBean) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT n.TOPUP_REF_ID, ");
+        queryBuilder.append("TO_CHAR(n.ENTRYDATE, 'YYYY-MM-DD HH24:MI:SS') as ENTRYDATE, ");
+        queryBuilder.append("n.ACCTNO, n.TXNAMT, n.BATCH_ID, n.NARRATION, ");
+        queryBuilder.append("n.DEBIT_RSP_CODE, COALESCE(b.ERR_DESC, '') as ERR_DESC ");
+        queryBuilder.append("FROM ESBUSER.CHL_AIRTIMETOPUP_3 n ");
+        queryBuilder.append("LEFT JOIN ESBUSER.BANCS_CONNECT_RESPONSE b ON n.DEBIT_RSP_CODE = b.ERR_CODE ");
+        queryBuilder.append("WHERE 1=1");
+
+        StringBuilder countQueryBuilder = new StringBuilder();
+        countQueryBuilder.append("SELECT COUNT(*) as total_count FROM ESBUSER.CHL_AIRTIMETOPUP_3 n ");
+        countQueryBuilder.append("WHERE 1=1");
+
+        return executeTransactionQuery(requestBean, queryBuilder, countQueryBuilder, "AIRTIME",
+                "TOPUP_REF_ID", "ENTRYDATE", "ACCTNO", "TXNAMT", "BATCH_ID", "NARRATION", "DEBIT_RSP_CODE");
+    }
+
+    /**
+     * Common method to execute transaction queries for all module types
+     */
+    private static boolean executeTransactionQuery(BaseBean requestBean, StringBuilder queryBuilder,
+                                                   StringBuilder countQueryBuilder, String moduleType,
+                                                   String paymentRefCol, String requestDateCol, String accountCol,
+                                                   String amountCol, String batchIdCol, String narrationCol, String responseCodeCol) {
+
         List<Object> parameters = new ArrayList<>();
 
         // BATCH_ID is required - NUMBER(28,0) in database
         if (requestBean.containsKey("batch_id") && !requestBean.getString("batch_id").trim().isEmpty()) {
-            queryBuilder.append(" AND n.BATCH_ID = ?");
-            countQueryBuilder.append(" AND n.BATCH_ID = ?");
+            queryBuilder.append(" AND n.").append(batchIdCol).append(" = ?");
+            countQueryBuilder.append(" AND n.").append(batchIdCol).append(" = ?");
 
             try {
                 Long batchId = Long.parseLong(requestBean.getString("batch_id").trim());
                 parameters.add(batchId);
-                LOG.info("Adding batch_id filter: {}", batchId);
+                LOG.info("Adding batch_id filter for {}: {}", moduleType, batchId);
             } catch (NumberFormatException e) {
                 LOG.error("Invalid batch_id format: {}", requestBean.getString("batch_id"));
                 requestBean.setString("message", "Invalid batch_id format. Must be a valid number.");
@@ -56,15 +136,15 @@ public class PendingTransactionDbHelper {
             return false;
         }
 
-        // Add tran_ref filter (optional) - filter on PAYMENTREFERENCE column
+        // Add tran_ref filter (optional) - filter on payment reference column
         if (requestBean.containsKey("tran_ref") && !requestBean.getString("tran_ref").trim().isEmpty()) {
-            queryBuilder.append(" AND n.PAYMENTREFERENCE = ?");
-            countQueryBuilder.append(" AND n.PAYMENTREFERENCE = ?");
+            queryBuilder.append(" AND n.").append(paymentRefCol).append(" = ?");
+            countQueryBuilder.append(" AND n.").append(paymentRefCol).append(" = ?");
             parameters.add(requestBean.getString("tran_ref").trim());
-            LOG.info("Adding tran_ref filter: {}", requestBean.getString("tran_ref"));
+            LOG.info("Adding tran_ref filter for {}: {}", moduleType, requestBean.getString("tran_ref"));
         }
 
-        // Handle DATE range filters - REQUESTDATE is DATE type, convert ISO format to DATE
+        // Handle DATE range filters - REQUESTDATE/ENTRYDATE is DATE type, convert ISO format to DATE
         boolean hasStartDate = requestBean.containsKey("start_date") &&
                 !requestBean.getString("start_date").trim().isEmpty();
         boolean hasEndDate = requestBean.containsKey("end_date") &&
@@ -72,22 +152,22 @@ public class PendingTransactionDbHelper {
 
         if (hasStartDate) {
             // Convert ISO format (2025-06-16T07:38:25) to DATE for Oracle
-            queryBuilder.append(" AND n.REQUESTDATE >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            queryBuilder.append(" AND n.").append(requestDateCol).append(" >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.").append(requestDateCol).append(" >= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
             parameters.add(requestBean.getString("start_date").trim());
-            LOG.info("Adding start_date filter: {}", requestBean.getString("start_date"));
+            LOG.info("Adding start_date filter for {}: {}", moduleType, requestBean.getString("start_date"));
         }
 
         if (hasEndDate) {
             // Convert ISO format (2025-06-16T07:38:25) to DATE for Oracle
-            queryBuilder.append(" AND n.REQUESTDATE <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
-            countQueryBuilder.append(" AND n.REQUESTDATE <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            queryBuilder.append(" AND n.").append(requestDateCol).append(" <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+            countQueryBuilder.append(" AND n.").append(requestDateCol).append(" <= TO_DATE(?, 'YYYY-MM-DD\"T\"HH24:MI:SS')");
             parameters.add(requestBean.getString("end_date").trim());
-            LOG.info("Adding end_date filter: {}", requestBean.getString("end_date"));
+            LOG.info("Adding end_date filter for {}: {}", moduleType, requestBean.getString("end_date"));
         }
 
-        // Add sorting by REQUESTDATE in descending order
-        queryBuilder.append(" ORDER BY n.REQUESTDATE DESC");
+        // Add sorting by request date in descending order
+        queryBuilder.append(" ORDER BY n.").append(requestDateCol).append(" DESC");
 
         // Add pagination
         int page = 1;
@@ -121,14 +201,9 @@ public class PendingTransactionDbHelper {
         ResultSet rs = null;
         ResultSet countRs = null;
 
-        LOG.info("Executing query: {}", query);
+        LOG.info("Executing {} query: {}", moduleType, query);
         LOG.info("Parameters: {}", parameters);
         LOG.info("Pagination - Page: {}, Size: {}, Offset: {}", page, size, offset);
-
-        // Debug: Log the tran_ref filter if provided
-        if (requestBean.containsKey("tran_ref") && !requestBean.getString("tran_ref").trim().isEmpty()) {
-            LOG.info("DEBUG: Filtering by tran_ref (PAYMENTREFERENCE): {}", requestBean.getString("tran_ref"));
-        }
 
         try {
             cnn = ConnectionUtil.getConnection();
@@ -155,7 +230,7 @@ public class PendingTransactionDbHelper {
             if (countRs.next()) {
                 totalRows = countRs.getInt("total_count");
             }
-            LOG.info("Total rows found: {}", totalRows);
+            LOG.info("Total rows found for {}: {}", moduleType, totalRows);
 
             // Calculate total pages
             int totalPages = totalRows > 0 ? (int) Math.ceil((double) totalRows / size) : 0;
@@ -178,36 +253,69 @@ public class PendingTransactionDbHelper {
             JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
             int rowCount = 0;
 
-            LOG.info("DEBUG: Starting to process result set...");
+            LOG.info("DEBUG: Starting to process {} result set...", moduleType);
             while (rs.next()) {
                 rowCount++;
                 JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
-                // Log each record for debugging
-                String currentPaymentRef = rs.getString("PAYMENTREFERENCE");
-                String currentBatchId = rs.getString("BATCH_ID");
-                LOG.debug("DEBUG: Processing record {}: PAYMENTREFERENCE={}, BATCH_ID={}", rowCount, currentPaymentRef, currentBatchId);
+                // Map database columns to response fields based on module type
+                if ("INFLOW".equals(moduleType)) {
+                    // Log each record for debugging
+                    String currentPaymentRef = rs.getString("PAYMENTREFERENCE");
+                    String currentBatchId = rs.getString("BATCH_ID");
+                    LOG.debug("DEBUG: Processing {} record {}: PAYMENTREFERENCE={}, BATCH_ID={}", moduleType, rowCount, currentPaymentRef, currentBatchId);
 
-                // Map database columns to response fields with null safety
-                jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
-                jsonBuilder.add("tran_date", rs.getString("REQUESTDATE") != null ? rs.getString("REQUESTDATE") : "");
-                jsonBuilder.add("acct_no", rs.getString("ACCOUNTNUMBER") != null ? rs.getString("ACCOUNTNUMBER") : "");
+                    jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
+                    jsonBuilder.add("tran_date", rs.getString("REQUESTDATE") != null ? rs.getString("REQUESTDATE") : "");
+                    jsonBuilder.add("acct_no", rs.getString("ACCOUNTNUMBER") != null ? rs.getString("ACCOUNTNUMBER") : "");
+                    jsonBuilder.add("response_code", rs.getString("C24_RSP_CODE") != null ? rs.getString("C24_RSP_CODE") : "");
 
-                // Handle AMOUNT as string to preserve precision
-                String amount = rs.getString("AMOUNT");
+                } else if ("OUTFLOW".equals(moduleType)) {
+                    // Log each record for debugging
+                    String currentPaymentRef = rs.getString("PAYMENTREFERENCE");
+                    String currentBatchId = rs.getString("BATCH_ID");
+                    LOG.debug("DEBUG: Processing {} record {}: PAYMENTREFERENCE={}, BATCH_ID={}", moduleType, rowCount, currentPaymentRef, currentBatchId);
+
+                    jsonBuilder.add("tran_ref", rs.getString("PAYMENTREFERENCE") != null ? rs.getString("PAYMENTREFERENCE") : "");
+                    jsonBuilder.add("tran_date", rs.getString("REQUESTDATE") != null ? rs.getString("REQUESTDATE") : "");
+                    jsonBuilder.add("acct_no", rs.getString("BENEFICIARYACCOUNTNUMBER") != null ? rs.getString("BENEFICIARYACCOUNTNUMBER") : "");
+                    jsonBuilder.add("response_code", rs.getString("TSQ_2_RSP_CODE") != null ? rs.getString("TSQ_2_RSP_CODE") : "");
+
+                } else if ("AIRTIME".equals(moduleType)) {
+                    // Log each record for debugging
+                    String currentPaymentRef = rs.getString("TOPUP_REF_ID");
+                    String currentBatchId = rs.getString("BATCH_ID");
+                    LOG.debug("DEBUG: Processing {} record {}: TOPUP_REF_ID={}, BATCH_ID={}", moduleType, rowCount, currentPaymentRef, currentBatchId);
+
+                    jsonBuilder.add("tran_ref", rs.getString("TOPUP_REF_ID") != null ? rs.getString("TOPUP_REF_ID") : "");
+                    jsonBuilder.add("tran_date", rs.getString("ENTRYDATE") != null ? rs.getString("ENTRYDATE") : "");
+                    jsonBuilder.add("acct_no", rs.getString("ACCTNO") != null ? rs.getString("ACCTNO") : "");
+                    jsonBuilder.add("response_code", rs.getString("DEBIT_RSP_CODE") != null ? rs.getString("DEBIT_RSP_CODE") : "");
+                }
+
+                // Common fields for all module types
+                String amount = null;
+                String batchId = null;
+                String narration = null;
+                String errorDesc = rs.getString("ERR_DESC") != null ? rs.getString("ERR_DESC") : "";
+
+                if ("AIRTIME".equals(moduleType)) {
+                    amount = rs.getString("TXNAMT");
+                } else {
+                    amount = rs.getString("AMOUNT");
+                }
+
+                batchId = rs.getString("BATCH_ID");
+                narration = rs.getString("NARRATION");
+
                 jsonBuilder.add("tran_amt", amount != null ? amount : "");
-
-                // Handle BATCH_ID as string
-                String batchId = rs.getString("BATCH_ID");
                 jsonBuilder.add("batch_id", batchId != null ? batchId : "");
-
-                jsonBuilder.add("tran_narration", rs.getString("NARRATION") != null ? rs.getString("NARRATION") : "");
-                jsonBuilder.add("response_code", rs.getString("C24_RSP_CODE") != null ? rs.getString("C24_RSP_CODE") : "");
-                jsonBuilder.add("response_desc", rs.getString("ERR_DESC") != null ? rs.getString("ERR_DESC") : "");
+                jsonBuilder.add("tran_narration", narration != null ? narration : "");
+                jsonBuilder.add("response_desc", errorDesc);
 
                 jsonArrayBuilder.add(jsonBuilder.build());
             }
-            LOG.info("DEBUG: Finished processing result set. Total records processed: {}", rowCount);
+            LOG.info("DEBUG: Finished processing {} result set. Total records processed: {}", moduleType, rowCount);
 
             success = true;
             requestBean.setString("pending_transactions", JsonUtil.toStr(jsonArrayBuilder.build()));
@@ -216,13 +324,13 @@ public class PendingTransactionDbHelper {
             requestBean.setString("current_page", String.valueOf(page));
             requestBean.setString("page_size", String.valueOf(size));
 
-            LOG.info("Successfully fetched {} pending transactions out of {} total rows", rowCount, totalRows);
+            LOG.info("Successfully fetched {} {} transactions out of {} total rows", rowCount, moduleType, totalRows);
 
         } catch (SQLException e) {
-            LOG.error("SQL error in getPendingTransactions: {}", e.getMessage(), e);
+            LOG.error("SQL error in get{}Transactions: {}", moduleType, e.getMessage(), e);
             requestBean.setString("message", "Database error: " + e.getMessage());
         } catch (Exception e) {
-            LOG.error("Error in getPendingTransactions: {}", e.getMessage(), e);
+            LOG.error("Error in get{}Transactions: {}", moduleType, e.getMessage(), e);
             requestBean.setString("message", "Error processing request: " + e.getMessage());
         } finally {
             // Close resources in reverse order
