@@ -20,8 +20,8 @@ public class OutflowSwitchDbHelper {
         Connection cnn = ConnectionUtil.getConnection();
         String query = "INSERT INTO "
                 .concat(SWITCH_OUTFLOW_REQUEST)
-                .concat(" ( id, module, created_by, created_at, action, status) ")
-                .concat("VALUES (esbuser.outflow_switch_seq.nextval,?, ?, sysdate, ?, ?)");
+                .concat(" ( id, module, created_by, created_at, action, status, old_request_id) ")
+                .concat("VALUES (esbuser.outflow_switch_seq.nextval,?, ?, sysdate, ?, ?, ?)");
 
         boolean success = false;
 
@@ -38,6 +38,7 @@ public class OutflowSwitchDbHelper {
             ps.setString(++kk, requestBean.getString("user"));
             ps.setString(++kk, requestBean.getString("action"));
             ps.setString(++kk, "PENDING");
+            ps.setString(++kk, requestBean.getString("id"));
             try {
 
                 if (ps.executeUpdate() > 0) {
@@ -75,7 +76,6 @@ public class OutflowSwitchDbHelper {
         return success;
     }
 
-
     public static boolean approveSwitchRequest(BaseBean requestBean) {
         boolean success = false;
         try {
@@ -83,6 +83,7 @@ public class OutflowSwitchDbHelper {
             OutflowSwitchRequest operation = OutFlowSwitchFactory.createOutFlowSwitchRequest(requestBean.getString("module"));
             success = operation.approveModuleRequest(requestBean, cnn);
         } catch (Exception e) {
+            LOG.error("", e);
             requestBean.setString("message", e.getMessage());
         }
         return success;

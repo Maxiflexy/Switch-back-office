@@ -43,10 +43,10 @@ public class SwitchAlgorithmRequest extends RequestValidator implements RequestE
             validateParameter(jsonRequest, requestBean, "name");
             validateParameter(jsonRequest, requestBean, "code");
             validateParameter(jsonRequest, requestBean, "type");
-            if (requestBean.getString("type").equalsIgnoreCase("FAILURE_RATE")) {
+            if (requestBean.getString("type").equalsIgnoreCase("TIME_BASED")) {
                 validateParameter(jsonRequest, requestBean, "failure_count", false);
                 validateParameter(jsonRequest, requestBean, "failure_time", false);
-            } else if (requestBean.getString("type").equalsIgnoreCase("TIME_BASED")) {
+            } else if (requestBean.getString("type").equalsIgnoreCase("FAILURE_RATE")) {
                 validateParameter(jsonRequest, requestBean, "failure_count", false);
                 validateParameter(jsonRequest, requestBean, "measurement_period", false);
             } else {

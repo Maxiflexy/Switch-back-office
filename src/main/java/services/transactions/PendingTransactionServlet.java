@@ -40,11 +40,12 @@ public class PendingTransactionServlet extends CustomBaseServlet {
             String startDate = servletRequest.getParameter("start_date");
             String endDate = servletRequest.getParameter("end_date");
             String requestType = servletRequest.getParameter("request_type");
+            String moduleType = servletRequest.getParameter("module_type");
             String page = servletRequest.getParameter("page");
             String size = servletRequest.getParameter("size");
 
-            LOG.info("Received request parameters - batch_id: {}, start_date: {}, end_date: {}, request_type: {}, page: {}, size: {}",
-                    batchId, startDate, endDate, requestType, page, size);
+            LOG.info("Received request parameters - batch_id: {}, module_type: {}, start_date: {}, end_date: {}, request_type: {}, page: {}, size: {}",
+                    batchId, moduleType, startDate, endDate, requestType, page, size);
 
             // Add parameters to JSON builder (addObject handles null values)
             addObject(builder, "batch_id", batchId);
@@ -52,6 +53,7 @@ public class PendingTransactionServlet extends CustomBaseServlet {
             addObject(builder, "start_date", startDate);
             addObject(builder, "end_date", endDate);
             addObject(builder, "request_type", requestType);
+            addObject(builder, "module_type", moduleType);
             addObject(builder, "page", page);
             addObject(builder, "size", size);
 

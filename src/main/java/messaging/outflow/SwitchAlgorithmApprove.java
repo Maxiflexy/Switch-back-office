@@ -41,7 +41,8 @@ public class SwitchAlgorithmApprove extends RequestValidator implements RequestE
         try {
             jsonRequest = JsonUtil.toJsonObject(request);
             validateParameter(jsonRequest, requestBean, "id", false);
-            validateOptionalParameter(jsonRequest, requestBean, "status", true);
+            validateOptionalParameter(jsonRequest, requestBean, "status", false);
+            validateOptionalParameter(jsonRequest, requestBean, "message", true);
             response = true;
 
         } catch (Exception e) {
@@ -59,7 +60,13 @@ public class SwitchAlgorithmApprove extends RequestValidator implements RequestE
         if (!procErr) {
             throw new CustomException(requestBean);
         }
-        String message = "Algorithm Request Created";
+        String status = requestBean.getString("status");
+        String message = "";
+        if (status.equalsIgnoreCase("true")) {
+             message = "Algorithm Request approved";
+        } else {
+            message = "Algorithm Request declined";
+        }
         jsonResp = Json.createObjectBuilder()
                 .add("status", ResponseUtil.SUCCESS)
                 .add("message", message)

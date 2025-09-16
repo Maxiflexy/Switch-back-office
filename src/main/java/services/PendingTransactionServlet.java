@@ -32,6 +32,7 @@ public class PendingTransactionServlet extends CustomBaseServlet {
             JsonObjectBuilder builder = Json.createObjectBuilder();
             addObject(builder, "operation_type", servletRequest.getParameter("service_type"));
             addObject(builder, "switch", servletRequest.getParameter("switch"));
+            addObject(builder, "module", servletRequest.getParameter("module"));
             addObject(builder, "start_date", servletRequest.getParameter("start_date"));
             addObject(builder, "end_date", servletRequest.getParameter("end_date"));
             addObject(builder, "page", servletRequest.getParameter("page"));

@@ -327,8 +327,8 @@ public class CustomUtil {
         requestBean.setString("token-expiration",String.valueOf(claimsSet.getExpirationTime().getTime()));
     }
 
-    public static void getUserDetailsAndPersistUserData(BaseBean requestBean) {
-        DBHelper.insertUserIntoDB(requestBean);
+    public static boolean getUserDetailsAndPersistUserData(BaseBean requestBean) {
+        return DBHelper.insertUserIntoDB(requestBean);
     }
 
     public static BaseBean createErrorBean(BaseBean requestBean) {

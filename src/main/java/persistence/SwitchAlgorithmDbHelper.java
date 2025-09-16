@@ -1,16 +1,16 @@
 package persistence;
 
+import constants.OutflowSwitchAction;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import util.BaseBean;
 import util.JsonUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static constants.AppConstants.DbTables.*;
 
 public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
 
@@ -66,15 +66,106 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
     }
 
     @Override
-    public boolean updateModuleRequest(BaseBean request, Connection connection) {
-
-        return false;
+    public boolean updateModuleRequest(BaseBean unapprovedBean,BaseBean requestBean, Connection cnn) {
+        StringBuilder query = new StringBuilder("UPDATE ")
+                .append(SWITCH_ALG)
+                .append(" sa SET name  = ?, code =?, type = ?, failure_count = ?, failure_time = ?, measurement_period = ? where id = ?");
+        PreparedStatement ps = null;
+        boolean success = false;
+        LOG.info("Updating switch Algorithm: {}", query.toString());
+        try {
+            int kk = 0;
+            cnn.setAutoCommit(false);
+            ps = cnn.prepareStatement(query.toString());
+            ps.setString(++kk, unapprovedBean.getString("name"));
+            ps.setString(++kk, unapprovedBean.getString("code"));
+            ps.setString(++kk, unapprovedBean.getString("type"));
+            ps.setString(++kk, unapprovedBean.getString("failure_count"));
+            ps.setString(++kk, unapprovedBean.getString("failure_time"));
+            ps.setString(++kk, unapprovedBean.getString("measurement_period"));
+            ps.setString(++kk, unapprovedBean.getString("old_request_id"));
+            try {
+                if (ps.executeUpdate() > 0) {
+                    cnn.commit();
+                    success = true;
+                } else {
+                    //check if app has been verified
+                    LOG.info("unable to write to Outflow switch request table");
+                    cnn.rollback();
+                    LOG.info("done with rollback");
+                }
+            }catch (SQLIntegrityConstraintViolationException e) {
+                requestBean.setString("message", "Algorithm already exists: {}");
+                LOG.error("", e);
+            } catch (SQLException e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+        } catch (Exception e) {
+            requestBean.setString("message", e.getMessage());
+            LOG.error("", e);
+        } finally {
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+        }
+        return success;
     }
 
     @Override
-    public boolean deactivateModuleRequest(BaseBean request, Connection connection) {
-
-        return false;
+    public boolean deactivateModuleRequest(BaseBean unapprovedBean, BaseBean requestBean, Connection cnn) {
+        StringBuilder query = new StringBuilder("UPPDATE ")
+                .append(SWITCH_ALG);
+        if (unapprovedBean.getString("action").equalsIgnoreCase(OutflowSwitchAction.DEACTIVATE.getName())) {
+            query.append(" sa SET sa.DEL_STATUS = 'Y', sa.DEL_BY = ?, sa.DEL_DATE = sysdate where id = ?");
+        } else if (unapprovedBean.getString("action").equalsIgnoreCase(OutflowSwitchAction.ACTIVATE.getName())) {
+            query.append(" sa SET sa.DEL_STATUS = 'N', sa.DEL_BY = ?, sa.DEL_DATE = sysdate where id = ?");
+        }
+        PreparedStatement ps = null;
+        boolean success = false;
+        LOG.info("Updating switch Algorithm: {}", query.toString());
+        try {
+            int kk = 0;
+            cnn.setAutoCommit(false);
+            ps = cnn.prepareStatement(query.toString());
+            ps.setString(++kk, unapprovedBean.getString("created_by"));
+            ps.setString(++kk, unapprovedBean.getString("old_request_id"));
+            try {
+                if (ps.executeUpdate() > 0) {
+                    cnn.commit();
+                    success = true;
+                } else {
+                    //check if app has been verified
+                    LOG.info("unable to write to Outflow switch request table");
+                    cnn.rollback();
+                    LOG.info("done with rollback");
+                }
+            }catch (SQLIntegrityConstraintViolationException e) {
+                requestBean.setString("message", "Algorithm already exists: {}");
+                LOG.error("", e);
+            } catch (SQLException e) {
+                requestBean.setString("message", e.getMessage());
+                LOG.error("", e);
+            }
+        } catch (Exception e) {
+            unapprovedBean.setString("message", e.getMessage());
+            LOG.error("", e);
+        } finally {
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    LOG.error("", e);
+                }
+                ps = null;
+            }
+        }
+        return success;
     }
 
     @Override
@@ -83,35 +174,50 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
         if (unapprovedAlgorithm.isEmpty()) {
             throw new IllegalArgumentException("Unapproved request not found");
         }
+
+        BaseBean approvedAlgorithm = new BaseBean();
+        String action = unapprovedAlgorithm.getString("action");
+        if (!action.equalsIgnoreCase("create")) {
+            approvedAlgorithm = findApprovedById(Long.parseLong(unapprovedAlgorithm.getString("old_request_id")));
+        }
         Connection cnn = ConnectionUtil.getConnection();
         String query = "";
-        if (unapprovedAlgorithm.getString("action").equalsIgnoreCase("create")) {
-            query = "UPDATE "
-                    .concat(SWITCH_ALG_MC)
-                    .concat(" SET approval_date = sysdate, approved_by = ?, approval_message = ?, status = ? where id = ?");
+        query = "UPDATE "
+                .concat(SWITCH_OUTFLOW_REQUEST)
+                .concat(" SET approval_date = sysdate, approved_by = ?, message = ?, status = ?, old_value = ? where id = ?");
 
-        } else {
-            throw new IllegalArgumentException("Invalid action");
-        }
         PreparedStatement ps = null;
         boolean success = false;
-        boolean isApproved = requestBean.getString("status").equalsIgnoreCase("approved");
+        boolean isApproved = requestBean.getString("status").equalsIgnoreCase("true");
+        LOG.info("Query: {}", query);
         try {
             int kk = 0;
             cnn.setAutoCommit(false);
             ps = cnn.prepareStatement(query);
             ps.setString(++kk, requestBean.getString("user"));
             ps.setString(++kk, requestBean.getString("message"));
-            ps.setString(++kk, unapprovedAlgorithm.getString("id"));
             ps.setString(++kk, isApproved ? "APPROVED" : "REJECTED");
+            ps.setString(++kk, JsonUtil.convertBaseBeanToStr(approvedAlgorithm));
+            ps.setString(++kk, unapprovedAlgorithm.getString("request_id"));
+
 
             try {
                 if (ps.executeUpdate() > 0) {
                     if (isApproved) {
-                        success = createApprovedAlgorithm(requestBean, unapprovedAlgorithm, cnn);
+                        if (action.equalsIgnoreCase(OutflowSwitchAction.CREATE.getName())) {
+                            success = createApprovedAlgorithm(requestBean, unapprovedAlgorithm, cnn);
+                        } else if (action.equalsIgnoreCase(OutflowSwitchAction.DEACTIVATE.getName()) || action.equalsIgnoreCase(OutflowSwitchAction.ACTIVATE.getName())) {
+                            success = deactivateModuleRequest(unapprovedAlgorithm, requestBean, cnn);
+                        } else if (action.equalsIgnoreCase(OutflowSwitchAction.UPDATE.getName())) {
+                            success = updateModuleRequest(unapprovedAlgorithm,requestBean, cnn);
+                        }
+
                     } else {
                         success = true;
                         cnn.commit();
+                    }
+                    if (!success) {
+                        cnn.rollback();
                     }
                 } else {
                     //check if app has been verified
@@ -145,12 +251,13 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
         String query = "INSERT INTO "
                 .concat(SWITCH_ALG)
                 .concat(" (name, code, type, failure_time, failure_count, measurement_period, del_status, created_by, created_at, approved_by, approval_date )")
-                .concat(" SELECT sa.name, sa.code, sa.type, sa.failure_time, sa.failure_count, sa.measurement_period, 'N' so.created_by, so.created_at, so.approved_by, so.approval_date FROM ")
+                .concat(" SELECT sa.name, sa.code, sa.type, sa.failure_time, sa.failure_count, sa.measurement_period, 'N', so.created_by, so.created_at, so.approved_by, so.approval_date FROM ")
                 .concat(SWITCH_OUTFLOW_REQUEST)
                 .concat(" so INNER JOIN ")
                 .concat(SWITCH_ALG_MC)
-                .concat(" sa ON so.id = sa.request_id where so.id = ?");
+                .concat(" sa ON so.id = sa.request_id where sa.id = ?");
 
+        LOG.info("Creating algorithm Query: {}", query);
         PreparedStatement ps = null;
         boolean success = false;
         try {
@@ -169,6 +276,9 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
                     cnn.rollback();
                     LOG.info("done with rollback");
                 }
+            } catch (SQLIntegrityConstraintViolationException e) {
+                requestBean.setString("message", "Algorithm already exist");
+                LOG.error("", e);
             } catch (SQLException e) {
                 requestBean.setString("message", e.getMessage());
                 LOG.error("", e);
@@ -189,8 +299,7 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
         return success;
     }
 
-
-    public BaseBean findApprovedById(long id) {
+    public static BaseBean findApprovedById(long id) {
         String query = "SELECT * FROM "
                 .concat(SWITCH_ALG)
                 .concat(" WHERE id = ?");
@@ -240,10 +349,12 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
 
     }
 
-    public BaseBean findUnapprovedById(long id) {
-        String query = "SELECT * FROM "
+    public static BaseBean findUnapprovedById(long id) {
+        String query = "SELECT sa.id, sa.name, sa.code, sa.failure_count, sa.failure_time, sa.measurement_period, sa.type, so.created_by, so.created_at, so.approved_by, so.approval_date, so.action, so.status, sa.request_id, so.old_request_id FROM "
+                .concat(SWITCH_OUTFLOW_REQUEST)
+                .concat(" so INNER JOIN ")
                 .concat(SWITCH_ALG_MC)
-                .concat(" WHERE id = ?");
+                .concat(" sa ON so.id = sa.request_id where sa.id = ?");
         BaseBean algorithmBean = new BaseBean();
         PreparedStatement ps = null;
 
@@ -260,12 +371,18 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
                     algorithmBean.put("id", rs.getString("id"));
                     algorithmBean.put("name", rs.getString("name"));
                     algorithmBean.put("code", rs.getString("code"));
+                    algorithmBean.put("type", rs.getString("type"));
+                    algorithmBean.put("failure_count", rs.getString("failure_count"));
+                    algorithmBean.put("failure_time", rs.getString("failure_time"));
+                    algorithmBean.put("measurement_period", rs.getString("measurement_period"));
                     algorithmBean.put("created_by", rs.getString("created_by"));
                     algorithmBean.put("created_at", rs.getString("created_at"));
                     algorithmBean.put("approved_by", rs.getString("approved_by"));
                     algorithmBean.put("approval_date", rs.getString("approval_date"));
                     algorithmBean.put("action", rs.getString("action"));
                     algorithmBean.put("status", rs.getString("status"));
+                    algorithmBean.put("request_id", rs.getString("request_id"));
+                    algorithmBean.put("old_request_id", rs.getString("old_request_id"));
                 }
             } catch (SQLException e) {
                 LOG.error("", e);
@@ -293,7 +410,7 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
     public static boolean fetchApprovedRequests(BaseBean requestBean, Connection cnn) {
         String query = "SELECT * FROM "
                 .concat(SWITCH_ALG)
-                .concat(" where id is not null");
+                .concat(" sa where id is not null");
 
         query = query.concat(createApprovedFetchQueryString(requestBean));
 
@@ -328,6 +445,10 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
                         documentBean.put("id", rs.getString("id"));
                         documentBean.put("name", rs.getString("name"));
                         documentBean.put("code", rs.getString("code"));
+                        documentBean.put("type", rs.getString("type"));
+                        documentBean.put("failure_count", rs.getString("failure_count"));
+                        documentBean.put("failure_time", rs.getString("failure_time"));
+                        documentBean.put("measurement_period", rs.getString("measurement_period"));
                         documentBean.put("created_by", rs.getString("created_by"));
                         documentBean.put("created_at", rs.getString("created_at"));
                         documentBean.put("approved_by", rs.getString("approved_by"));
@@ -393,11 +514,13 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
 
     private static void fetchTotalApprovedRecordCount(BaseBean requestBean) {
         String query = "SELECT COUNT(*) as count FROM "
-                .concat(SWITCH_ALG);
+                .concat(SWITCH_ALG)
+                .concat(" sa WHERE id is not null ");
 
         query = query.concat(createApprovedFetchQueryString(requestBean));
         Connection cnn = ConnectionUtil.getConnection();
         PreparedStatement ps = null;
+        LOG.info("Query Count: {}", query);
         boolean success = false;
         try {
             ps = cnn.prepareStatement(query);
@@ -439,7 +562,7 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
             return fetchApprovedRequests(requestBean, cnn);
         }
 
-        String query = "SELECT sa.id, sa.name, sa.code, so.created_by, so.created_at, so.approved_by, so.approval_date, so.action, so.status FROM "
+        String query = "SELECT sa.id, sa.name, sa.code,sa.type, sa.failure_count, failure_time, sa.measurement_period, so.created_by, so.created_at, so.approved_by, so.approval_date, so.action, so.status, so.old_request_id FROM "
                 .concat(SWITCH_OUTFLOW_REQUEST)
                 .concat(" so INNER JOIN ")
                 .concat(SWITCH_ALG_MC)
@@ -463,7 +586,6 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
         boolean success = false;
         PreparedStatement ps = null;
 
-
         LOG.info("Fetching outflow switch {}", query);
 
         try {
@@ -478,12 +600,19 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
                         documentBean.put("id", rs.getString("id"));
                         documentBean.put("name", rs.getString("name"));
                         documentBean.put("code", rs.getString("code"));
+                        documentBean.put("type", rs.getString("type"));
+                        documentBean.put("failure_count", rs.getString("failure_count"));
+                        documentBean.put("failure_time", rs.getString("failure_time"));
+                        documentBean.put("measurement_period", rs.getString("measurement_period"));
                         documentBean.put("created_by", rs.getString("created_by"));
                         documentBean.put("created_at", rs.getString("created_at"));
                         documentBean.put("approved_by", rs.getString("approved_by"));
                         documentBean.put("approval_date", rs.getString("approval_date"));
                         documentBean.put("action", rs.getString("action"));
                         documentBean.put("status", rs.getString("status"));
+                        if (!documentBean.getString("action").isEmpty() && !documentBean.getString("action").equalsIgnoreCase(OutflowSwitchAction.CREATE.getName())) {
+                            documentBean.setString("oldId", rs.getString("old_request_id"));
+                        }
                         transactions.add(documentBean);
                     } catch (Exception e) {
                         LOG.error(e);
@@ -495,7 +624,6 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
             } catch (SQLException e) {
                 requestBean.setString("message", e.getMessage());
                 LOG.error("", e);
-                e.printStackTrace();
             }
 
         } catch (Exception e) {
@@ -530,7 +658,7 @@ public class SwitchAlgorithmDbHelper implements OutflowSwitchRequest {
         }
 
         if (requestBean.containsKey("status")) {
-            ps.setString(++kk, requestBean.getString("status"));
+            ps.setString(++kk, requestBean.getString("status").toUpperCase());
         }
 
     }

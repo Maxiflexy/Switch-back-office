@@ -27,7 +27,7 @@ public class CustomException extends RuntimeException {
     }
 
     public String getResponseCode() {
-        return responseCode.isEmpty() ? "00" : responseCode;
+        return responseCode.isEmpty() ? "01" : responseCode;
     }
 
     public BaseBean getBaseBean() {

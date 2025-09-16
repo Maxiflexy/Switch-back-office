@@ -37,11 +37,12 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             String retrialStartDate = servletRequest.getParameter("retrial_start_date");
             String retrialEndDate = servletRequest.getParameter("retrial_end_date");
             String batchId = servletRequest.getParameter("batch_id");
+            String module = servletRequest.getParameter("module_type");
             String page = servletRequest.getParameter("page");
             String size = servletRequest.getParameter("size");
 
-            LOG.info("Received request parameters - service_type: {}, request_status: {}, retrial_start_date: {}, retrial_end_date: {}, batch_id: {}, page: {}, size: {}",
-                    serviceType, requestStatus, retrialStartDate, retrialEndDate, batchId, page, size);
+            LOG.info("Received request parameters - service_type: {}, request_status: {}, retrial_start_date: {}, retrial_end_date: {}, batch_id: {}, module: {}, page: {}, size: {}",
+                    serviceType, requestStatus, retrialStartDate, retrialEndDate, batchId, module, page, size);
 
             // Add parameters to JSON builder (addObject handles null values)
             addObject(builder, "service_type", serviceType);
@@ -49,6 +50,7 @@ public class FailedRetrialServlet extends CustomBaseServlet {
             addObject(builder, "retrial_start_date", retrialStartDate);
             addObject(builder, "retrial_end_date", retrialEndDate);
             addObject(builder, "batch_id", batchId);
+            addObject(builder, "module", module);
             addObject(builder, "page", page);
             addObject(builder, "size", size);
 

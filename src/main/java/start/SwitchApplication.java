@@ -4,6 +4,7 @@ import filters.AuthorizationFilter;
 import filters.CORSFilter;
 import filters.TokenInvalidationFilter;
 import filters.ValidateTokenFilter;
+import messaging.outflow.SwitchAlgorithmApprove;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleState;
@@ -20,7 +21,9 @@ import services.*;
 import services.fileservlets.Approveupload;
 import services.fileservlets.UploadServlet;
 import services.outflow.OutflowSwitchSequence;
+import services.outflow.SwitchAlgApprove;
 import services.outflow.SwitchAlgorithmController;
+import services.outflow.SwitchAlgorithmDeactivate;
 import services.performance.PerformanceServlet;
 import services.performance.endpoints.ApproveEndpointServlet;
 import services.performance.endpoints.Endpoint;
@@ -28,8 +31,7 @@ import services.serviceProvider.ApproveServiceServlet;
 import services.serviceProvider.Service;
 import services.switchController.ApproveSwitchServlet;
 import services.switchController.Switch;
-import services.transactions.BatchApprovalServlet;
-import services.transactions.FailedRetrialServlet;
+import services.transactions.*;
 import services.transactions.PendingTransactionServlet;
 import services.virtualaccount.ApproveVirtualAccountServlet;
 import services.virtualaccount.VirtualAccount;
@@ -114,7 +116,7 @@ public class SwitchApplication {
             context.setAddWebinfClassesResources(false);
             FilterDef fd = new FilterDef();
             fd.setFilterClass(CORSFilter.class.getName());
-            fd.setFilterName("CorsFilter"); 
+            fd.setFilterName("CorsFilter");
             FilterMap fm = new FilterMap();
             fm.setFilterName("CorsFilter");
             fm.addURLPattern("/*");
@@ -256,10 +258,20 @@ public class SwitchApplication {
             Tomcat.addServlet(context, "switchAlgorithm", new SwitchAlgorithmController());
             context.addServletMappingDecoded( apiContext + "/outflow/algorithm", "switchAlgorithm");
 
+            Tomcat.addServlet(context, "switchAlgorithmDeactivate", new SwitchAlgorithmDeactivate());
+            context.addServletMappingDecoded( apiContext + "/outflow/algorithm/activate", "switchAlgorithmDeactivate");
+
+            Tomcat.addServlet(context, "switchAlgorithmApprove", new SwitchAlgApprove());
+            context.addServletMappingDecoded( apiContext + "/outflow/algorithm/approve", "switchAlgorithmApprove");
+
             Tomcat.addServlet(context, "switchSequence", new OutflowSwitchSequence());
             context.addServletMappingDecoded( apiContext + "/outflow/sequence", "switchSequence");
 
+            Tomcat.addServlet(context, "CreateTimetableServlet", new CreateTimetableServlet());
+            context.addServletMappingDecoded(apiContext + "/outflow/create/timetable", "CreateTimetableServlet");
 
+            Tomcat.addServlet(context, "ApproveTimetableServlet", new ApproveTimetableServlet());
+            context.addServletMappingDecoded(apiContext + "/outflow/time-table/approve", "ApproveTimetableServlet");
 
             StandardContext standardContext = (StandardContext) context;
             standardContext.setClearReferencesObjectStreamClassCaches(false);

@@ -100,6 +100,7 @@ public class UploadServlet extends FileServlet {
             // TODO Auto-generated catch block
             LOG.info("AN ERROR OCCURRED:: {}", e.getMessage());
             e.printStackTrace();
+            out.print(createDefaultResponse("11", 500, e.getMessage()));
             LOG.error(e.getMessage(), e);
         }
         try {

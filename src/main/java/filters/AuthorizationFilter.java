@@ -33,7 +33,7 @@ public class AuthorizationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String svciD = httpRequest.getHttpServletMapping().getServletName().toLowerCase().replace("servlet", "");
         String requestPath = httpRequest.getServletPath();
-        System.out.println("path:: " + httpRequest.getContextPath());
+        LOG.info("path:: " + httpRequest.getContextPath());
         LOG.info("SVCID:  {}", svciD);
 
         BaseBean requestBean = new BaseBean();

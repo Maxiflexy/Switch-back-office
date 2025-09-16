@@ -54,7 +54,7 @@ public class HttpMessageUtil {
                 LOG.info("Entrust path: {}", configBean.getString("entrust_path"));
             } else {
                  uri = new URIBuilder()
-                        .setScheme("http")
+                        .setScheme("https")
                         .setHost(configBean.getString("ad_base_uri"))
                         .setPath("")
                         .build();

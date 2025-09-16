@@ -47,7 +47,6 @@ public class FetchSwitchAlgorithmRequest extends RequestValidator implements Req
             validateOptionalParameter(jsonRequest, requestBean, "details", false);
             validateOptionalParameter(jsonRequest, requestBean, "status", true);
             response = true;
-
         } catch (Exception e) {
             if (requestBean.get("message").isEmpty()) {
                 requestBean.setString("validationcode", "01");

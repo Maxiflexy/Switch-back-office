@@ -34,6 +34,8 @@ public class AppConstants {
         public static final String FEE_CONFIG = TABLE_SPACE.concat(".FEES_CONFIG");
         public static final String CONTRA_ACCOUNT_TABLE = TABLE_SPACE.concat(".CONTRA_ACC_CONFIG");
         public static final String CONTRA_ACCOUNT_MC_TABLE = TABLE_SPACE.concat(".CONTRA_ACC_CONFIG_MC");
+        public static final String AIRTIME_TABLE = TABLE_SPACE.concat(".CHL_AIRTIMETOPUP_3");
+        public static final String POSTING_RETRIAL = TABLE_SPACE.concat(".POSTING_RETRIAL");
 
         public static final String INST_ROUTE_TABLE = TABLE_SPACE.concat(".IBT_FSP_FINST_MAP");
         public static final String INST_ROUTE_TABLE_MC = TABLE_SPACE.concat(".IBT_FSP_FINST_MAP_MC");
@@ -48,6 +50,9 @@ public class AppConstants {
         public static final String VIRTUAL_ACCOUNT_CONFIG = TABLE_SPACE.concat(".virtual_account_config");
         public static final String VIRTUAL_ACCOUNT_CONFIG_MC = TABLE_SPACE.concat(".virtual_account_config_mc");
         public static final String DEL_ARCHIVE = TABLE_SPACE.concat(".SWITCH_DELETION_ARCHIVE");
+        public static final String SWITCH_OUTFLOW_REQUEST = TABLE_SPACE.concat(".SWITCH_REQUESTS");
+        public static final String SWITCH_ALG_MC = TABLE_SPACE.concat(".SWITCH_ALG_MC");
+        public static final String SWITCH_ALG = TABLE_SPACE.concat(".SWITCH_ALGORITHM");
 
 
     }
